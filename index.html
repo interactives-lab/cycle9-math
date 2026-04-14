@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade 7 Cycle 9 — Interactive Tools</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite);
+    color: var(--slate);
+  }
+  .header {
+    background: var(--teal);
+    color: white;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .header h1 {
+    margin: 0 0 6px 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    opacity: 0.85;
+    font-style: italic;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  .intro {
+    background: white;
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid var(--teal);
+  }
+  .intro p { margin: 6px 0; font-size: 13px; line-height: 1.6; }
+  .block-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--grey);
+    font-weight: 700;
+    margin: 22px 0 10px 4px;
+    border-bottom: 1px solid #d0d8dd;
+    padding-bottom: 6px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: white;
+    border-radius: 6px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 5px solid var(--grey);
+    text-decoration: none;
+    color: var(--slate);
+    display: block;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+  .card.teal { border-left-color: var(--teal); }
+  .card.purp { border-left-color: var(--purp); }
+  .card.gold { border-left-color: var(--gold); }
+  .card.green { border-left-color: var(--green); }
+  .card.coral { border-left-color: var(--coral); }
+  .card .day {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+    margin-bottom: 4px;
+  }
+  .card .title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .card.teal .title { color: var(--teal); }
+  .card.purp .title { color: var(--purp); }
+  .card.gold .title { color: var(--gold); }
+  .card.green .title { color: var(--green); }
+  .card.coral .title { color: var(--coral); }
+  .card .desc {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 32px;
+    padding: 20px;
+    font-size: 11px;
+    color: var(--grey);
+    border-top: 1px solid #d0d8dd;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Grade 7 — Cycle 9 Interactive Tools</h1>
+  <div class="subtitle">Geometry, Transformations, Circles & Measurement</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <p><strong>18 interactive visualization tools, one for each instructional day.</strong> Click any card to open the tool in your browser. All tools work on phones, tablets, and computers. No login, no account, no download.</p>
+    <p style="color: var(--grey); font-style: italic;">Use these in class, at home, or for review. Each tool matches the day's lesson exactly.</p>
+  </div>
+
+  <div class="block-title">Block 1 — Classifying 3D Shapes (Days 1–2)</div>
+  <div class="grid">
+    <a class="card teal" href="G7_C9_Day01_3D_Shape_Explorer.html">
+      <div class="day">Day 1</div>
+      <div class="title">3D Shape Explorer</div>
+      <div class="desc">Rotate and inspect cubes, prisms, pyramids, cylinders, cones, and spheres. See faces, vertices, and edges.</div>
+    </a>
+    <a class="card purp" href="G7_C9_Day02_Symmetry_Explorer.html">
+      <div class="day">Day 2</div>
+      <div class="title">Symmetry Explorer</div>
+      <div class="desc">Find planes of symmetry in 3D shapes. Rotate and slice to see which cuts produce matching halves.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 2 — Views and Projections (Days 3–4)</div>
+  <div class="grid">
+    <a class="card gold" href="G7_C9_Day03_Three_Views_Builder.html">
+      <div class="day">Day 3</div>
+      <div class="title">Three-Views Builder</div>
+      <div class="desc">Build cube arrangements and see the top, front, and side views update live. Blueprint thinking.</div>
+    </a>
+    <a class="card green" href="G7_C9_Day04_Isometric_Builder.html">
+      <div class="day">Day 4</div>
+      <div class="title">Isometric Builder</div>
+      <div class="desc">Construct 3D shapes on an isometric grid. See the orthographic views alongside.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 3 — Dilations and Similarity (Days 5–6)</div>
+  <div class="grid">
+    <a class="card coral" href="G7_C9_Day05_Dilation_Explorer.html">
+      <div class="day">Day 5</div>
+      <div class="title">Dilation Explorer</div>
+      <div class="desc">Scale shapes by factor k. Watch how lengths scale by k but areas scale by k². The beautiful k² rule.</div>
+    </a>
+    <a class="card teal" href="G7_C9_Day06_Similarity_Checker.html">
+      <div class="day">Day 6</div>
+      <div class="title">Similarity Checker</div>
+      <div class="desc">Enter two shapes' dimensions. Check whether they're similar and find the scale factor.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 4 — Translations, Reflections, Rotations (Days 7–8)</div>
+  <div class="grid">
+    <a class="card purp" href="G7_C9_Day07_Transformation_Playground.html">
+      <div class="day">Day 7</div>
+      <div class="title">Transformation Playground</div>
+      <div class="desc">Drag shapes on a coordinate grid. Apply translations and reflections. See the coordinate rules.</div>
+    </a>
+    <a class="card gold" href="G7_C9_Day08_Rotation_Explorer.html">
+      <div class="day">Day 8</div>
+      <div class="title">Rotation Explorer</div>
+      <div class="desc">Rotate shapes 90°, 180°, and 270° around any point. Watch the rotation arcs.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 5 — Volume and Capacity (Days 9–10)</div>
+  <div class="grid">
+    <a class="card green" href="G7_C9_Day09_Volume_Builder.html">
+      <div class="day">Day 9</div>
+      <div class="title">Volume Builder</div>
+      <div class="desc">Adjust l, w, h sliders. Watch a 3D rectangular prism fill with water. Volume = l × w × h.</div>
+    </a>
+    <a class="card coral" href="G7_C9_Day10_Capacity_Calculator.html">
+      <div class="day">Day 10</div>
+      <div class="title">Capacity Calculator</div>
+      <div class="desc">Convert between cm³, mL, L, and m³. The 2000-bottle tank demonstration.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 6 — Metric Unit Conversions (Days 11–12)</div>
+  <div class="grid">
+    <a class="card teal" href="G7_C9_Day11_Conversion_Visualizer.html">
+      <div class="day">Day 11</div>
+      <div class="title">Conversion Visualizer</div>
+      <div class="desc">Slider for k. See length, area, and volume scale by k, k², and k³. The three scaling rules.</div>
+    </a>
+    <a class="card purp" href="G7_C9_Day12_Conversion_Chain.html">
+      <div class="day">Day 12</div>
+      <div class="title">Conversion Chain</div>
+      <div class="desc">Multi-step conversion workflow solver. Enter a value and unit, get a chain of conversions.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 7 — Circles (Days 13–14)</div>
+  <div class="grid">
+    <a class="card gold" href="G7_C9_Day13_Pi_Discovery_Lab.html">
+      <div class="day">Day 13</div>
+      <div class="title">π Discovery Lab</div>
+      <div class="desc">Drag a circle to change its size. Watch C/d stay exactly 3.14. The mystery of π revealed.</div>
+    </a>
+    <a class="card green" href="G7_C9_Day14_Compass_Simulator.html">
+      <div class="day">Day 14</div>
+      <div class="title">Compass Simulator</div>
+      <div class="desc">Three-mode compass — watch animated arc sweeps construct circles with given radius, diameter, or circumference.</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 8 — Area of a Circle (Days 15–16)</div>
+  <div class="grid">
+    <a class="card coral" href="G7_C9_Day15_Parallelogram_Proof.html">
+      <div class="day">Day 15</div>
+      <div class="title">Parallelogram Proof</div>
+      <div class="desc">Slice a circle into N sectors and rearrange. Watch the shape approach a parallelogram. See A = πr² proved visually.</div>
+    </a>
+    <a class="card teal" href="G7_C9_Day16_Pizza_Comparator.html">
+      <div class="day">Day 16</div>
+      <div class="title">Pizza Comparator</div>
+      <div class="desc">Compare two pizzas by cost per cm². Or compare sprinkler configurations by total area. Surprising results!</div>
+    </a>
+  </div>
+
+  <div class="block-title">Block 9 — Cylinders (Days 17–18)</div>
+  <div class="grid">
+    <a class="card purp" href="G7_C9_Day17_Cylinder_Unroller.html">
+      <div class="day">Day 17</div>
+      <div class="title">Cylinder Unroller</div>
+      <div class="desc">Drag the unroll slider to watch a cylinder flatten into 2 circles + 1 rectangle. Surface area formulas live.</div>
+    </a>
+    <a class="card gold" href="G7_C9_Day18_Volume_Explorer.html">
+      <div class="day">Day 18</div>
+      <div class="title">Volume Explorer</div>
+      <div class="desc">Toggle between rectangle, triangle, and circle bases. Watch V = (base area) × height work for all three.</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    Grade 7 Cycle 9 — Geometry, Transformations, Circles & Measurement<br>
+    18 interactive tools • 18 days of instruction • One spatial toolkit
+  </div>
+
+</div>
+
+</body>
+</html>

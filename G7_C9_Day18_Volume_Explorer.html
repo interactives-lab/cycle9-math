@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 18 — Volume Explorer</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .universal-strip {
+    background: var(--slate);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .universal-strip .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+  .universal-strip .formula {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #F4ECC6;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .mode-toggle {
+    display: flex; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 10px 16px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    color: var(--slate); font-family: inherit;
+  }
+  .mode-btn:hover { background: var(--light-grey); }
+  .mode-btn.active.rect { background: var(--teal); color: white; border-color: var(--teal); }
+  .mode-btn.active.tri { background: var(--purp); color: white; border-color: var(--purp); }
+  .mode-btn.active.circ { background: var(--gold); color: white; border-color: var(--gold); }
+
+  .controls {
+    background: var(--offwhite);
+    padding: 14px 16px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .control-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .control-row:last-child { margin-bottom: 0; }
+  .control-row label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+    min-width: 130px;
+  }
+  .control-row .value {
+    font-size: 18px;
+    font-weight: 700;
+    min-width: 55px;
+  }
+  .control-row input[type="range"] {
+    flex: 1;
+    min-width: 200px;
+  }
+  #mode-rect .value { color: var(--teal); }
+  #mode-tri .value { color: var(--purp); }
+  #mode-circ .value { color: var(--gold); }
+
+  .mode-panel { display: none; }
+  .mode-panel.active { display: block; }
+
+  .canvas-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .canvas-area svg { display: block; margin: 0 auto; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+  .stat-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+    text-align: left;
+  }
+  .stat-card.base { border-left-color: var(--grey); }
+  .stat-card.height { border-left-color: var(--slate); }
+  .stat-card.volume { border-left-color: var(--teal); }
+  /* Dynamic base color */
+  .stat-card.base.rect { border-left-color: var(--teal); }
+  .stat-card.base.tri { border-left-color: var(--purp); }
+  .stat-card.base.circ { border-left-color: var(--gold); }
+  .stat-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: var(--slate);
+  }
+  .stat-card.base.rect .value { color: var(--teal); }
+  .stat-card.base.tri .value { color: var(--purp); }
+  .stat-card.base.circ .value { color: var(--gold); }
+  .stat-card.volume .value { color: var(--teal); font-size: 24px; }
+  .stat-card .formula {
+    font-size: 10px;
+    color: var(--grey);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  .formula-strip {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    text-align: center;
+  }
+  .formula-strip .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--coral);
+  }
+  .formula-strip .formula {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-top: 4px;
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .preset-btn {
+    background: var(--light-grey);
+    border: 1px solid var(--grey);
+    padding: 5px 10px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--slate); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--slate); color: white; }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-teal);
+    border-left: 4px solid var(--teal);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Volume Explorer — One Formula, Three Shapes</h1>
+  <span class="badge">CYCLE 9 • DAY 18 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="universal-strip">
+    <div class="label">The Universal Formula</div>
+    <div class="formula">V  =  (base area)  ×  height</div>
+  </div>
+
+  <div class="panel">
+    <h2>Pick a Base Shape</h2>
+    <p class="instruction">Toggle between three base shapes. Each has its own base-area formula, but the outer pattern V = base × h never changes. Watch the Volume card — it's the same formula in all three modes.</p>
+
+    <div class="mode-toggle">
+      <button class="mode-btn rect active" data-mode="rect">Rectangular Prism</button>
+      <button class="mode-btn tri" data-mode="tri">Triangular Prism</button>
+      <button class="mode-btn circ" data-mode="circ">Cylinder</button>
+    </div>
+
+    <!-- RECTANGULAR MODE -->
+    <div class="mode-panel active" id="mode-rect">
+      <div class="controls">
+        <div class="control-row">
+          <label>Length (l):</label>
+          <span class="value" id="r-l-display">4</span>
+          <input type="range" id="r-l-slider" min="1" max="20" step="0.5" value="4">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+        <div class="control-row">
+          <label>Width (w):</label>
+          <span class="value" id="r-w-display">4</span>
+          <input type="range" id="r-w-slider" min="1" max="20" step="0.5" value="4">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+        <div class="control-row">
+          <label>Height (h):</label>
+          <span class="value" id="r-h-display">10</span>
+          <input type="range" id="r-h-slider" min="1" max="20" step="0.5" value="10">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIANGULAR MODE -->
+    <div class="mode-panel" id="mode-tri">
+      <div class="controls">
+        <div class="control-row">
+          <label>Triangle base (b):</label>
+          <span class="value" id="t-b-display">6</span>
+          <input type="range" id="t-b-slider" min="1" max="20" step="0.5" value="6">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+        <div class="control-row">
+          <label>Triangle height:</label>
+          <span class="value" id="t-h-display">4</span>
+          <input type="range" id="t-h-slider" min="1" max="20" step="0.5" value="4">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+        <div class="control-row">
+          <label>Length of prism:</label>
+          <span class="value" id="t-len-display">10</span>
+          <input type="range" id="t-len-slider" min="1" max="20" step="0.5" value="10">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CYLINDER MODE -->
+    <div class="mode-panel" id="mode-circ">
+      <div class="controls">
+        <div class="control-row">
+          <label>Radius (r):</label>
+          <span class="value" id="c-r-display">5</span>
+          <input type="range" id="c-r-slider" min="0.5" max="15" step="0.5" value="5">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+        <div class="control-row">
+          <label>Height (h):</label>
+          <span class="value" id="c-h-display">10</span>
+          <input type="range" id="c-h-slider" min="1" max="25" step="0.5" value="10">
+          <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-area">
+      <svg id="canvas" width="600" height="320" viewBox="0 0 600 320"></svg>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card base rect" id="base-card">
+        <div class="label" id="base-label">Base area (rectangle)</div>
+        <div class="value" id="base-val">16 cm²</div>
+        <div class="formula" id="base-formula">l × w = 4 × 4</div>
+      </div>
+      <div class="stat-card height">
+        <div class="label">Height</div>
+        <div class="value" id="height-val">10 cm</div>
+        <div class="formula">the cylinder/prism height</div>
+      </div>
+      <div class="stat-card volume">
+        <div class="label">Volume = base × height</div>
+        <div class="value" id="volume-val">160 cm³</div>
+        <div class="formula" id="volume-formula">16 × 10</div>
+      </div>
+    </div>
+
+    <div class="formula-strip">
+      <div class="label">Active Formula</div>
+      <div class="formula" id="active-formula">V = l × w × h</div>
+    </div>
+
+    <div class="preset-btns">
+      <button class="preset-btn" data-preset="s1">S1 square prism 4×4×10</button>
+      <button class="preset-btn" data-preset="s2">S2 triangular 6,4,10</button>
+      <button class="preset-btn" data-preset="s3">S3 cylinder r=5 h=10</button>
+      <button class="preset-btn" data-preset="s6">S6 water tank r=1 h=2 m</button>
+    </div>
+
+    <div class="insight-box">
+      <strong>The generalization:</strong> Rectangular prism, triangular prism, cylinder. Three different shapes. Three different base-area formulas (l × w, (1/2)bh, πr²). But the outer pattern <strong>V = base × height</strong> never changes. Toggle between modes and watch the Volume card — it's computed the same way every time. One formula, infinite applications. This is how mathematicians think: find the most general statement that captures all the specific cases.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════
+const PI = 3.14;
+const NS = 'http://www.w3.org/2000/svg';
+const canvas = document.getElementById('canvas');
+
+// State
+let mode = 'rect';  // 'rect', 'tri', 'circ'
+let state = {
+  rect: { l: 4, w: 4, h: 10 },
+  tri: { b: 6, htri: 4, len: 10 },
+  circ: { r: 5, h: 10 },
+};
+
+// ════════════════════════════════════════════════════════
+// MATH
+// ════════════════════════════════════════════════════════
+function computeVolume() {
+  if (mode === 'rect') {
+    const { l, w, h } = state.rect;
+    return { base: l * w, height: h, volume: l * w * h };
+  } else if (mode === 'tri') {
+    const { b, htri, len } = state.tri;
+    return { base: 0.5 * b * htri, height: len, volume: 0.5 * b * htri * len };
+  } else {
+    const { r, h } = state.circ;
+    return { base: PI * r * r, height: h, volume: PI * r * r * h };
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER — draws the current 3D shape as an isometric sketch
+// ════════════════════════════════════════════════════════
+function render() {
+  canvas.innerHTML = '';
+
+  // Canvas: 600 × 320
+  // Draw the 3D shape in the centre
+  const cx = 300, cy = 180;
+
+  if (mode === 'rect') {
+    drawRectPrism(cx, cy);
+  } else if (mode === 'tri') {
+    drawTriPrism(cx, cy);
+  } else {
+    drawCylinder(cx, cy);
+  }
+
+  // Title at top
+  const title = document.createElementNS(NS, 'text');
+  title.setAttribute('x', cx);
+  title.setAttribute('y', 30);
+  title.setAttribute('font-size', '14');
+  title.setAttribute('font-weight', '700');
+  title.setAttribute('fill', '#2C3E50');
+  title.setAttribute('text-anchor', 'middle');
+  const titles = {
+    rect: 'Rectangular Prism',
+    tri: 'Triangular Prism',
+    circ: 'Cylinder',
+  };
+  title.textContent = titles[mode];
+  canvas.appendChild(title);
+}
+
+function drawRectPrism(cx, cy) {
+  const { l, w, h } = state.rect;
+  // Isometric sketch: base (l × w) is a parallelogram, then vertical edges for h
+  const scale = Math.min(180 / Math.max(l, 10), 180 / Math.max(w, 10), 200 / Math.max(h, 10));
+  const pxL = l * scale;
+  const pxW = w * scale * 0.5;  // isometric foreshortening
+  const pxH = h * scale;
+
+  // Front-bottom corner
+  const x0 = cx - pxL / 2;
+  const y0 = cy + pxH / 2;
+
+  // Base (top of bottom face) — parallelogram
+  // 4 corners: (x0, y0), (x0+pxL, y0), (x0+pxL-pxW*0.5, y0-pxW*0.3), (x0-pxW*0.5, y0-pxW*0.3)
+  // Wait, isometric: depth goes up-and-back
+  // Corners of the bottom rect (in iso):
+  //   FL = (x0, y0) — front-left
+  //   FR = (x0 + pxL, y0) — front-right
+  //   BR = (x0 + pxL - pxW*0.5, y0 - pxW*0.3)  // hmm, should be up and left?
+  // Let me do this cleaner. Isometric: x-axis horizontal, y-axis vertical (height),
+  // z-axis (depth) at 30° going up-right
+  const depthDx = pxW * 0.5;
+  const depthDy = -pxW * 0.3;
+
+  // 8 corners of the rectangular prism
+  const FBL = [x0, y0];                          // front bottom left
+  const FBR = [x0 + pxL, y0];                    // front bottom right
+  const BBL = [x0 + depthDx, y0 + depthDy];      // back bottom left
+  const BBR = [x0 + pxL + depthDx, y0 + depthDy]; // back bottom right
+  const FTL = [x0, y0 - pxH];                    // front top left
+  const FTR = [x0 + pxL, y0 - pxH];              // front top right
+  const BTL = [x0 + depthDx, y0 - pxH + depthDy]; // back top left
+  const BTR = [x0 + pxL + depthDx, y0 - pxH + depthDy]; // back top right
+
+  // Fill the base (highlighted in teal light) to emphasize "this is the BASE"
+  polygon([FBL, FBR, BBR, BBL], '#D5E8E2', '#0E6655', 2);
+
+  // Top face
+  polygon([FTL, FTR, BTR, BTL], '#FFFFFF', '#0E6655', 1.5);
+  // Right face
+  polygon([FBR, BBR, BTR, FTR], '#FFFFFF', '#0E6655', 1.5);
+  // Front face
+  polygon([FBL, FBR, FTR, FTL], '#FFFFFF', '#0E6655', 1.5);
+
+  // Base label
+  textAt((FBL[0]+BBR[0])/2, (FBL[1]+BBR[1])/2 + 4, 'BASE', '#0E6655', 10, 'middle', true);
+
+  // Dimension labels
+  textAt((FBL[0]+FBR[0])/2, FBL[1] + 18, `l = ${l}`, '#0E6655', 11, 'middle', true);
+  textAt((FBR[0]+BBR[0])/2 + 12, (FBR[1]+BBR[1])/2 - 2, `w = ${w}`, '#0E6655', 11, 'start', true);
+  textAt(FBL[0] - 12, (FBL[1]+FTL[1])/2, `h = ${h}`, '#0E6655', 11, 'end', true);
+}
+
+function drawTriPrism(cx, cy) {
+  const { b, htri, len } = state.tri;
+  const scale = Math.min(180 / Math.max(len, 10), 160 / Math.max(b, 10), 160 / Math.max(htri, 10));
+  const pxB = b * scale;
+  const pxTriH = htri * scale;
+  const pxLen = len * scale * 0.7;  // length extends into the page isometrically
+
+  // Triangle base (front face) — right triangle with right angle at bottom-left
+  // Front triangle corners:
+  const FBL = [cx - pxB / 2, cy + pxTriH / 2];       // front bottom left (right angle)
+  const FBR = [cx - pxB / 2 + pxB, cy + pxTriH / 2]; // front bottom right
+  const FT  = [cx - pxB / 2, cy + pxTriH / 2 - pxTriH]; // front top (above FBL)
+
+  // Back triangle (shifted by depth)
+  const depthDx = pxLen * 0.7;
+  const depthDy = -pxLen * 0.35;
+  const BBL = [FBL[0] + depthDx, FBL[1] + depthDy];
+  const BBR = [FBR[0] + depthDx, FBR[1] + depthDy];
+  const BT  = [FT[0] + depthDx, FT[1] + depthDy];
+
+  // Draw the prism
+  // Front triangle (highlighted as the BASE — purple tint)
+  polygon([FBL, FBR, FT], '#E8DAEF', '#6C3483', 2);
+  // Back triangle (behind)
+  polygon([BBL, BBR, BT], '#FFFFFF', '#6C3483', 1.5);
+  // Bottom rectangle (connecting front bottom to back bottom)
+  polygon([FBL, FBR, BBR, BBL], '#FFFFFF', '#6C3483', 1.5);
+  // Slanted top face (from hypotenuse to back)
+  polygon([FBR, FT, BT, BBR], '#FFFFFF', '#6C3483', 1.5);
+
+  // Re-draw front triangle on top so it stays highlighted
+  polygon([FBL, FBR, FT], '#E8DAEF', '#6C3483', 2);
+
+  // BASE label inside the triangle
+  textAt((FBL[0] + FBR[0] + FT[0]) / 3, (FBL[1] + FBR[1] + FT[1]) / 3 + 4, 'BASE', '#6C3483', 10, 'middle', true);
+
+  // Dimension labels
+  textAt((FBL[0]+FBR[0])/2, FBL[1] + 18, `b = ${b}`, '#6C3483', 11, 'middle', true);
+  textAt(FBL[0] - 8, (FBL[1]+FT[1])/2, `h_tri = ${htri}`, '#6C3483', 11, 'end', true);
+  textAt((FBR[0]+BBR[0])/2 + 12, (FBR[1]+BBR[1])/2 - 2, `len = ${len}`, '#6C3483', 11, 'start', true);
+}
+
+function drawCylinder(cx, cy) {
+  const { r, h } = state.circ;
+  const scale = Math.min(150 / Math.max(r, 5), 200 / Math.max(h, 10));
+  const pxR = r * scale;
+  const pxH = h * scale;
+  const ellipseH = pxR * 0.35;
+
+  // Top and bottom ellipse centres
+  const topY = cy - pxH / 2;
+  const botY = cy + pxH / 2;
+
+  // Draw filled rectangle for the side body first
+  const body = document.createElementNS(NS, 'path');
+  // The body is a rectangle with rounded top and bottom
+  body.setAttribute('d',
+    `M ${cx - pxR} ${topY} ` +
+    `L ${cx - pxR} ${botY} ` +
+    `A ${pxR} ${ellipseH} 0 0 0 ${cx + pxR} ${botY} ` +
+    `L ${cx + pxR} ${topY} ` +
+    `A ${pxR} ${ellipseH} 0 0 1 ${cx - pxR} ${topY} Z`);
+  body.setAttribute('fill', '#FFFFFF');
+  body.setAttribute('stroke', '#B7950B');
+  body.setAttribute('stroke-width', 1.5);
+  canvas.appendChild(body);
+
+  // Bottom ellipse (the BASE — highlighted in gold)
+  const botEllipse = document.createElementNS(NS, 'ellipse');
+  botEllipse.setAttribute('cx', cx);
+  botEllipse.setAttribute('cy', botY);
+  botEllipse.setAttribute('rx', pxR);
+  botEllipse.setAttribute('ry', ellipseH);
+  botEllipse.setAttribute('fill', '#F4ECC6');
+  botEllipse.setAttribute('stroke', '#B7950B');
+  botEllipse.setAttribute('stroke-width', 2);
+  canvas.appendChild(botEllipse);
+
+  // Top ellipse
+  const topEllipse = document.createElementNS(NS, 'ellipse');
+  topEllipse.setAttribute('cx', cx);
+  topEllipse.setAttribute('cy', topY);
+  topEllipse.setAttribute('rx', pxR);
+  topEllipse.setAttribute('ry', ellipseH);
+  topEllipse.setAttribute('fill', '#FFFFFF');
+  topEllipse.setAttribute('stroke', '#B7950B');
+  topEllipse.setAttribute('stroke-width', 1.5);
+  canvas.appendChild(topEllipse);
+
+  // BASE label in the bottom ellipse
+  textAt(cx, botY + 4, 'BASE', '#B7950B', 10, 'middle', true);
+
+  // Dimension labels
+  // Radius line inside bottom ellipse
+  const rline = document.createElementNS(NS, 'line');
+  rline.setAttribute('x1', cx);
+  rline.setAttribute('y1', botY);
+  rline.setAttribute('x2', cx + pxR);
+  rline.setAttribute('y2', botY);
+  rline.setAttribute('stroke', '#B7950B');
+  rline.setAttribute('stroke-width', 1.5);
+  rline.setAttribute('stroke-dasharray', '3,2');
+  canvas.appendChild(rline);
+  textAt(cx + pxR / 2, botY - 4, `r = ${r}`, '#B7950B', 10, 'middle', true);
+
+  // Height label on the left
+  textAt(cx - pxR - 8, (topY + botY) / 2, `h = ${h}`, '#B7950B', 11, 'end', true);
+}
+
+// Helpers
+function polygon(pts, fill, stroke, strokeWidth) {
+  const poly = document.createElementNS(NS, 'polygon');
+  poly.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+  poly.setAttribute('fill', fill);
+  poly.setAttribute('stroke', stroke);
+  poly.setAttribute('stroke-width', strokeWidth);
+  poly.setAttribute('stroke-linejoin', 'round');
+  canvas.appendChild(poly);
+}
+
+function textAt(x, y, text, color, size, anchor, bold) {
+  const t = document.createElementNS(NS, 'text');
+  t.setAttribute('x', x);
+  t.setAttribute('y', y);
+  t.setAttribute('font-size', size);
+  t.setAttribute('fill', color);
+  t.setAttribute('text-anchor', anchor);
+  if (bold) t.setAttribute('font-weight', '700');
+  t.textContent = text;
+  canvas.appendChild(t);
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  // Update slider displays
+  document.getElementById('r-l-display').textContent = state.rect.l;
+  document.getElementById('r-w-display').textContent = state.rect.w;
+  document.getElementById('r-h-display').textContent = state.rect.h;
+  document.getElementById('t-b-display').textContent = state.tri.b;
+  document.getElementById('t-h-display').textContent = state.tri.htri;
+  document.getElementById('t-len-display').textContent = state.tri.len;
+  document.getElementById('c-r-display').textContent = state.circ.r;
+  document.getElementById('c-h-display').textContent = state.circ.h;
+
+  // Compute the stats
+  const stats = computeVolume();
+
+  // Format base area — integer if whole number
+  const baseStr = (stats.base === Math.floor(stats.base))
+    ? `${stats.base} cm²`
+    : `${stats.base.toFixed(2)} cm²`;
+  const volStr = (stats.volume === Math.floor(stats.volume))
+    ? `${stats.volume} cm³`
+    : `${stats.volume.toFixed(2)} cm³`;
+
+  document.getElementById('base-val').textContent = baseStr;
+  document.getElementById('height-val').textContent = `${stats.height} cm`;
+  document.getElementById('volume-val').textContent = volStr;
+
+  // Update base card styling + labels/formulas
+  const baseCard = document.getElementById('base-card');
+  baseCard.classList.remove('rect', 'tri', 'circ');
+  baseCard.classList.add(mode);
+
+  const baseLabel = document.getElementById('base-label');
+  const baseFormula = document.getElementById('base-formula');
+  const volumeFormula = document.getElementById('volume-formula');
+  const activeFormula = document.getElementById('active-formula');
+
+  if (mode === 'rect') {
+    const { l, w } = state.rect;
+    baseLabel.textContent = 'Base area (rectangle)';
+    baseFormula.textContent = `l × w = ${l} × ${w}`;
+    volumeFormula.textContent = `${stats.base} × ${stats.height}`;
+    activeFormula.textContent = 'V = l × w × h';
+  } else if (mode === 'tri') {
+    const { b, htri } = state.tri;
+    baseLabel.textContent = 'Base area (triangle)';
+    baseFormula.textContent = `(1/2) × ${b} × ${htri} = (1/2)(${b})(${htri})`;
+    volumeFormula.textContent = `${stats.base} × ${stats.height}`;
+    activeFormula.textContent = 'V = (1/2) × b × h_tri × length';
+  } else {
+    const { r } = state.circ;
+    baseLabel.textContent = 'Base area (circle)';
+    baseFormula.textContent = `π × r² = 3.14 × ${r * r}`;
+    volumeFormula.textContent = `${stats.base} × ${stats.height}`;
+    activeFormula.textContent = 'V = πr² × h';
+  }
+
+  render();
+}
+
+// ════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ════════════════════════════════════════════════════════
+function setMode(newMode) {
+  mode = newMode;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === newMode);
+  });
+  document.querySelectorAll('.mode-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `mode-${newMode}`);
+  });
+  update();
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+
+// Rect sliders
+document.getElementById('r-l-slider').addEventListener('input', e => {
+  state.rect.l = parseFloat(e.target.value); update();
+});
+document.getElementById('r-w-slider').addEventListener('input', e => {
+  state.rect.w = parseFloat(e.target.value); update();
+});
+document.getElementById('r-h-slider').addEventListener('input', e => {
+  state.rect.h = parseFloat(e.target.value); update();
+});
+
+// Tri sliders
+document.getElementById('t-b-slider').addEventListener('input', e => {
+  state.tri.b = parseFloat(e.target.value); update();
+});
+document.getElementById('t-h-slider').addEventListener('input', e => {
+  state.tri.htri = parseFloat(e.target.value); update();
+});
+document.getElementById('t-len-slider').addEventListener('input', e => {
+  state.tri.len = parseFloat(e.target.value); update();
+});
+
+// Circ sliders
+document.getElementById('c-r-slider').addEventListener('input', e => {
+  state.circ.r = parseFloat(e.target.value); update();
+});
+document.getElementById('c-h-slider').addEventListener('input', e => {
+  state.circ.h = parseFloat(e.target.value); update();
+});
+
+// Presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.preset;
+    if (p === 's1') {
+      state.rect = { l: 4, w: 4, h: 10 };
+      document.getElementById('r-l-slider').value = 4;
+      document.getElementById('r-w-slider').value = 4;
+      document.getElementById('r-h-slider').value = 10;
+      setMode('rect');
+    } else if (p === 's2') {
+      state.tri = { b: 6, htri: 4, len: 10 };
+      document.getElementById('t-b-slider').value = 6;
+      document.getElementById('t-h-slider').value = 4;
+      document.getElementById('t-len-slider').value = 10;
+      setMode('tri');
+    } else if (p === 's3') {
+      state.circ = { r: 5, h: 10 };
+      document.getElementById('c-r-slider').value = 5;
+      document.getElementById('c-h-slider').value = 10;
+      setMode('circ');
+    } else if (p === 's6') {
+      // Water tank — displayed in "cm" but interpreted as "units" for visual scaling
+      // The real values are r=1m, h=2m. We'll just use r=1, h=2 and let the label show cm
+      // but the student can mentally substitute m.
+      state.circ = { r: 1, h: 2 };
+      document.getElementById('c-r-slider').value = 1;
+      document.getElementById('c-h-slider').value = 2;
+      setMode('circ');
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

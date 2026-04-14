@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 1 — 3D Shape Explorer</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite);
+    color: var(--slate);
+  }
+  .header {
+    background: var(--coral);
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1100px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--coral);
+    padding-bottom: 6px;
+  }
+  .shape-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .shape-btn {
+    background: var(--light-grey);
+    border: 2px solid transparent;
+    border-left: 4px solid var(--grey);
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .shape-btn:hover { background: white; border-color: var(--grey); }
+  .shape-btn.active {
+    background: white;
+    box-shadow: 0 0 0 2px currentColor;
+  }
+  .shape-btn .meta {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--grey);
+    margin-top: 2px;
+  }
+  .family-prism { border-left-color: var(--teal); color: var(--teal); }
+  .family-prism.active { background: var(--light-teal); }
+  .family-pyramid { border-left-color: var(--purp); color: var(--purp); }
+  .family-pyramid.active { background: var(--light-purp); }
+  .family-cylinder { border-left-color: var(--gold); color: var(--gold); }
+  .family-cylinder.active { background: var(--light-gold); }
+
+  .viewer {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .viewer-header {
+    padding: 12px 16px;
+    background: var(--slate);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .viewer-header .name {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .viewer-header .family-tag {
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  #canvas-container {
+    flex: 1;
+    min-height: 380px;
+    position: relative;
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+  }
+  #canvas-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .viewer-footer {
+    padding: 10px 16px;
+    background: var(--light-grey);
+    font-size: 11px;
+    color: var(--grey);
+    text-align: center;
+    font-style: italic;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--offwhite);
+    border-top: 1px solid var(--light-grey);
+  }
+  .ctrl-btn {
+    background: white;
+    border: 1px solid var(--grey);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--slate);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .ctrl-btn:hover { background: var(--light-grey); }
+  .ctrl-btn.toggled {
+    background: var(--coral);
+    color: white;
+    border-color: var(--coral);
+  }
+
+  .info-section {
+    margin-bottom: 18px;
+  }
+  .info-section h3 {
+    margin: 0 0 6px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--light-grey);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .stat-row .label { font-weight: 600; }
+  .stat-row .value {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--slate);
+  }
+  .euler-box {
+    background: var(--light-green);
+    border-left: 4px solid var(--green);
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 12px;
+  }
+  .euler-box .formula {
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    margin: 6px 0;
+    color: var(--green);
+  }
+  .euler-box .check {
+    text-align: center;
+    font-size: 12px;
+    color: var(--slate);
+    margin-top: 4px;
+  }
+  .description {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--slate);
+    background: var(--offwhite);
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 3px solid var(--coral);
+  }
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--grey);
+  }
+  .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>3D Shape Explorer</h1>
+  <span class="badge">CYCLE 9 • DAY 1 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <!-- LEFT: SHAPE LIST -->
+  <div class="panel">
+    <h2>Pick a Shape</h2>
+    <div style="font-size: 11px; color: var(--grey); margin-bottom: 10px; font-style: italic;">
+      Click a shape to view it in 3D. Drag to rotate.
+    </div>
+
+    <h3 style="font-size: 11px; color: var(--teal); margin: 12px 0 4px 0; text-transform: uppercase;">Prisms</h3>
+    <div class="shape-list" id="prism-list"></div>
+
+    <h3 style="font-size: 11px; color: var(--purp); margin: 16px 0 4px 0; text-transform: uppercase;">Pyramids</h3>
+    <div class="shape-list" id="pyramid-list"></div>
+
+    <h3 style="font-size: 11px; color: var(--gold); margin: 16px 0 4px 0; text-transform: uppercase;">Cylinders</h3>
+    <div class="shape-list" id="cylinder-list"></div>
+
+    <div style="margin-top: 16px;" class="legend">
+      <div class="item"><div class="swatch" style="background: #4a90e2;"></div>Faces (highlighted)</div>
+      <div class="item"><div class="swatch" style="background: #c0392b;"></div>Bases (CORAL)</div>
+      <div class="item"><div class="swatch" style="background: #2c3e50;"></div>Edges</div>
+      <div class="item"><div class="swatch" style="background: #f39c12; border-radius: 50%;"></div>Vertices</div>
+    </div>
+  </div>
+
+  <!-- CENTER: 3D VIEWER -->
+  <div class="viewer">
+    <div class="viewer-header">
+      <div>
+        <div class="name" id="shape-name">Triangular Prism</div>
+        <div style="font-size: 11px; opacity: 0.85;" id="shape-base">3-sided base</div>
+      </div>
+      <div class="family-tag" id="family-tag">PRISM</div>
+    </div>
+    <div id="canvas-container"></div>
+    <div class="controls">
+      <button class="ctrl-btn toggled" id="toggle-edges">Edges ✓</button>
+      <button class="ctrl-btn toggled" id="toggle-vertices">Vertices ✓</button>
+      <button class="ctrl-btn" id="toggle-bases">Highlight Bases</button>
+      <button class="ctrl-btn toggled" id="toggle-rotate">Auto-rotate ✓</button>
+      <button class="ctrl-btn" id="reset-view">Reset View</button>
+    </div>
+    <div class="viewer-footer">
+      Drag to rotate • Scroll to zoom • Right-click drag to pan
+    </div>
+  </div>
+
+  <!-- RIGHT: INFO PANEL -->
+  <div class="panel">
+    <h2>Shape Info</h2>
+
+    <div class="info-section">
+      <h3>Family</h3>
+      <div class="description" id="family-desc">A prism has two parallel, congruent polygonal bases joined by rectangular faces.</div>
+    </div>
+
+    <div class="info-section">
+      <h3>Counts</h3>
+      <div class="stat-row">
+        <span class="label">Faces (F)</span>
+        <span class="value" id="face-count">5</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Edges (E)</span>
+        <span class="value" id="edge-count">9</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Vertices (V)</span>
+        <span class="value" id="vertex-count">6</span>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Euler's Relationship</h3>
+      <div class="euler-box">
+        <div class="formula">F + V = E + 2</div>
+        <div class="check" id="euler-check">5 + 6 = 9 + 2 = 11 ✓</div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Right or Oblique?</h3>
+      <div class="description" id="right-oblique">RIGHT — sides perpendicular to base.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+// SHAPE DEFINITIONS
+// ════════════════════════════════════════════════════════
+const SHAPES = {
+  // PRISMS — pattern: F = n+2, E = 3n, V = 2n
+  'tri-prism': {
+    name: 'Triangular Prism',
+    base: '3-sided base (triangle)',
+    family: 'prism',
+    n: 3, F: 5, E: 9, V: 6,
+    desc: 'Two parallel triangular bases joined by 3 rectangular faces. Like a Toblerone bar or a camping tent.',
+    rightOblique: 'RIGHT — sides perpendicular to base.',
+  },
+  'rect-prism': {
+    name: 'Rectangular Prism',
+    base: '4-sided base (rectangle)',
+    family: 'prism',
+    n: 4, F: 6, E: 12, V: 8,
+    desc: 'Two parallel rectangular bases joined by 4 rectangular faces. Like a tissue box, a brick, or a shoebox.',
+    rightOblique: 'RIGHT — sides perpendicular to base.',
+  },
+  'pent-prism': {
+    name: 'Pentagonal Prism',
+    base: '5-sided base (pentagon)',
+    family: 'prism',
+    n: 5, F: 7, E: 15, V: 10,
+    desc: 'Two parallel pentagonal bases joined by 5 rectangular faces. Like a building with a pentagon-shaped floor plan.',
+    rightOblique: 'RIGHT — sides perpendicular to base.',
+  },
+  'hex-prism': {
+    name: 'Hexagonal Prism',
+    base: '6-sided base (hexagon)',
+    family: 'prism',
+    n: 6, F: 8, E: 18, V: 12,
+    desc: 'Two parallel hexagonal bases joined by 6 rectangular faces. Like a hexagonal pencil or a honeycomb cell.',
+    rightOblique: 'RIGHT — sides perpendicular to base.',
+  },
+
+  // PYRAMIDS — pattern: F = n+1, E = 2n, V = n+1
+  'tri-pyr': {
+    name: 'Triangular Pyramid (Tetrahedron)',
+    base: '3-sided base (triangle)',
+    family: 'pyramid',
+    n: 3, F: 4, E: 6, V: 4,
+    desc: 'One triangular base with 3 triangular faces meeting at an apex. The simplest 3D shape — all 4 faces are triangles!',
+    rightOblique: 'RIGHT — apex directly above the centre of the base.',
+  },
+  'sq-pyr': {
+    name: 'Square-Based Pyramid',
+    base: '4-sided base (square)',
+    family: 'pyramid',
+    n: 4, F: 5, E: 8, V: 5,
+    desc: 'One square base with 4 triangular faces meeting at an apex. Like the Great Pyramid of Giza.',
+    rightOblique: 'RIGHT — apex directly above the centre of the base.',
+  },
+  'hex-pyr': {
+    name: 'Hexagonal Pyramid',
+    base: '6-sided base (hexagon)',
+    family: 'pyramid',
+    n: 6, F: 7, E: 12, V: 7,
+    desc: 'One hexagonal base with 6 triangular faces meeting at an apex.',
+    rightOblique: 'RIGHT — apex directly above the centre of the base.',
+  },
+
+  // CYLINDER — F/E/V are contested in Grade 7 textbooks because of the curved surface.
+  // We use the common Ontario count: 3 faces (2 circles + 1 curved), 2 edges (the
+  // boundary circles where the curved surface meets each base), 0 vertices (no corners).
+  // Euler doesn't apply: 3 + 0 = 3 ≠ 2 + 2 = 4. The curved surface is the reason.
+  'cylinder': {
+    name: 'Right Circular Cylinder',
+    base: 'circular base',
+    family: 'cylinder',
+    n: null, F: 3, E: 2, V: 0,
+    desc: 'Two parallel circular bases joined by a curved surface. Like a soup can. Has INFINITE rotational symmetry about its central axis.',
+    rightOblique: 'RIGHT — bases stacked directly above each other.',
+  },
+};
+
+const FAMILY_INFO = {
+  prism: {
+    color: 0x0E6655,
+    light: '#D5E8E2',
+    label: 'PRISM',
+    desc: 'A prism has TWO parallel, congruent POLYGONAL bases joined by rectangular faces. Named by the shape of its base.',
+  },
+  pyramid: {
+    color: 0x6C3483,
+    light: '#E8DAEF',
+    label: 'PYRAMID',
+    desc: 'A pyramid has ONE polygonal base with triangular faces meeting at a single APEX. Named by the shape of its base.',
+  },
+  cylinder: {
+    color: 0xB7950B,
+    light: '#F4ECC6',
+    label: 'CYLINDER',
+    desc: 'A cylinder has TWO parallel, congruent bases joined by a curved or parallelogram surface. Most familiar: the right circular cylinder.',
+  },
+};
+
+// ════════════════════════════════════════════════════════
+// THREE.JS SETUP
+// ════════════════════════════════════════════════════════
+let scene, camera, renderer, currentMesh, edgeLines, vertexDots, baseHighlights;
+let autoRotate = true;
+let showEdges = true;
+let showVertices = true;
+let highlightBases = false;
+let isDragging = false;
+let prevMouseX = 0, prevMouseY = 0;
+let rotationY = 0, rotationX = 0.3;
+let zoom = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+
+const container = document.getElementById('canvas-container');
+
+function initThree() {
+  scene = new THREE.Scene();
+  scene.background = null;
+
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+
+  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 0, 6);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  scene.add(ambient);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  dirLight.position.set(5, 8, 5);
+  scene.add(dirLight);
+
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  fillLight.position.set(-5, -3, -5);
+  scene.add(fillLight);
+
+  // Mouse interaction
+  renderer.domElement.addEventListener('mousedown', onMouseDown);
+  renderer.domElement.addEventListener('mousemove', onMouseMove);
+  renderer.domElement.addEventListener('mouseup', onMouseUp);
+  renderer.domElement.addEventListener('mouseleave', onMouseUp);
+  renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+  renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Touch
+  renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+  renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+  renderer.domElement.addEventListener('touchend', onMouseUp);
+
+  window.addEventListener('resize', onResize);
+}
+
+function onResize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+function onMouseDown(e) {
+  if (e.button === 2) {
+    isPanning = true;
+  } else {
+    isDragging = true;
+    autoRotate = false;
+    document.getElementById('toggle-rotate').classList.remove('toggled');
+    document.getElementById('toggle-rotate').textContent = 'Auto-rotate';
+  }
+  prevMouseX = e.clientX;
+  prevMouseY = e.clientY;
+}
+
+function onMouseMove(e) {
+  if (isDragging) {
+    const dx = e.clientX - prevMouseX;
+    const dy = e.clientY - prevMouseY;
+    rotationY += dx * 0.01;
+    rotationX += dy * 0.01;
+    rotationX = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, rotationX));
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  } else if (isPanning) {
+    const dx = e.clientX - prevMouseX;
+    const dy = e.clientY - prevMouseY;
+    panX += dx * 0.01;
+    panY -= dy * 0.01;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  }
+}
+
+function onMouseUp() {
+  isDragging = false;
+  isPanning = false;
+}
+
+function onWheel(e) {
+  e.preventDefault();
+  zoom *= (1 + e.deltaY * 0.001);
+  zoom = Math.max(0.4, Math.min(3, zoom));
+}
+
+function onTouchStart(e) {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    autoRotate = false;
+    document.getElementById('toggle-rotate').classList.remove('toggled');
+    document.getElementById('toggle-rotate').textContent = 'Auto-rotate';
+    prevMouseX = e.touches[0].clientX;
+    prevMouseY = e.touches[0].clientY;
+  }
+  e.preventDefault();
+}
+
+function onTouchMove(e) {
+  if (isDragging && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - prevMouseX;
+    const dy = e.touches[0].clientY - prevMouseY;
+    rotationY += dx * 0.01;
+    rotationX += dy * 0.01;
+    rotationX = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, rotationX));
+    prevMouseX = e.touches[0].clientX;
+    prevMouseY = e.touches[0].clientY;
+  }
+  e.preventDefault();
+}
+
+// ════════════════════════════════════════════════════════
+// SHAPE BUILDERS
+// ════════════════════════════════════════════════════════
+function clearCurrentMesh() {
+  if (currentMesh) {
+    scene.remove(currentMesh);
+    if (currentMesh.geometry) currentMesh.geometry.dispose();
+    if (Array.isArray(currentMesh.material)) {
+      currentMesh.material.forEach(m => m.dispose());
+    } else if (currentMesh.material) {
+      currentMesh.material.dispose();
+    }
+    currentMesh = null;
+  }
+  if (edgeLines) {
+    scene.remove(edgeLines);
+    // edgeLines might be a LineSegments (prism/pyramid) or a Group (cylinder).
+    // Groups don't have .geometry — recurse through children to dispose properly.
+    if (edgeLines.geometry) {
+      edgeLines.geometry.dispose();
+    } else if (edgeLines.children) {
+      edgeLines.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+    }
+    edgeLines = null;
+  }
+  if (vertexDots) { scene.remove(vertexDots); vertexDots.geometry.dispose(); vertexDots.material.dispose(); vertexDots = null; }
+  if (baseHighlights) { scene.remove(baseHighlights); baseHighlights.geometry.dispose(); baseHighlights.material.dispose(); baseHighlights = null; }
+}
+
+// Build a regular n-gon prism with the bases as separate face groups
+function buildPrism(n, height, radius) {
+  // Vertices: bottom ring (n) + top ring (n) = 2n vertices
+  const vertices = [];
+  const bottomVerts = [];
+  const topVerts = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2;
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    bottomVerts.push([x, -height/2, z]);
+    topVerts.push([x, height/2, z]);
+  }
+
+  // Build BufferGeometry manually
+  const positions = [];
+  const colors = [];
+  const indices = [];
+  const sideColor = new THREE.Color(0x4a90e2); // blue for sides
+  const baseColor = new THREE.Color(0xc0392b); // coral for bases
+
+  // Bottom base — triangulate as a fan from vertex 0
+  const bottomStart = positions.length / 3;
+  for (let i = 0; i < n; i++) {
+    positions.push(...bottomVerts[i]);
+    if (highlightBases) {
+      colors.push(baseColor.r, baseColor.g, baseColor.b);
+    } else {
+      colors.push(sideColor.r, sideColor.g, sideColor.b);
+    }
+  }
+  for (let i = 1; i < n - 1; i++) {
+    indices.push(bottomStart, bottomStart + i + 1, bottomStart + i); // reverse winding for bottom
+  }
+
+  // Top base — fan from vertex 0
+  const topStart = positions.length / 3;
+  for (let i = 0; i < n; i++) {
+    positions.push(...topVerts[i]);
+    if (highlightBases) {
+      colors.push(baseColor.r, baseColor.g, baseColor.b);
+    } else {
+      colors.push(sideColor.r, sideColor.g, sideColor.b);
+    }
+  }
+  for (let i = 1; i < n - 1; i++) {
+    indices.push(topStart, topStart + i, topStart + i + 1);
+  }
+
+  // Side faces — n quads, each as 2 triangles. Use separate vertices so colors are clean.
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    const startIdx = positions.length / 3;
+    positions.push(...bottomVerts[i]);
+    positions.push(...bottomVerts[j]);
+    positions.push(...topVerts[j]);
+    positions.push(...topVerts[i]);
+    for (let k = 0; k < 4; k++) {
+      colors.push(sideColor.r, sideColor.g, sideColor.b);
+    }
+    indices.push(startIdx, startIdx + 1, startIdx + 2);
+    indices.push(startIdx, startIdx + 2, startIdx + 3);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  return { geometry, bottomVerts, topVerts };
+}
+
+function buildPyramid(n, height, radius) {
+  const baseVerts = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    baseVerts.push([x, -height/2, z]);
+  }
+  const apex = [0, height/2, 0];
+
+  const positions = [];
+  const colors = [];
+  const indices = [];
+  const sideColor = new THREE.Color(0x4a90e2);
+  const baseColor = new THREE.Color(0xc0392b);
+
+  // Base — fan
+  const baseStart = positions.length / 3;
+  for (let i = 0; i < n; i++) {
+    positions.push(...baseVerts[i]);
+    if (highlightBases) {
+      colors.push(baseColor.r, baseColor.g, baseColor.b);
+    } else {
+      colors.push(sideColor.r, sideColor.g, sideColor.b);
+    }
+  }
+  for (let i = 1; i < n - 1; i++) {
+    indices.push(baseStart, baseStart + i + 1, baseStart + i);
+  }
+
+  // Side triangles
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    const startIdx = positions.length / 3;
+    positions.push(...baseVerts[i]);
+    positions.push(...baseVerts[j]);
+    positions.push(...apex);
+    for (let k = 0; k < 3; k++) {
+      colors.push(sideColor.r, sideColor.g, sideColor.b);
+    }
+    indices.push(startIdx, startIdx + 1, startIdx + 2);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  return { geometry, baseVerts, apex };
+}
+
+function buildCylinder(height, radius, segments) {
+  // Use Three.js's built-in CylinderGeometry, but split groups so we can colour bases
+  const geom = new THREE.CylinderGeometry(radius, radius, height, segments);
+  // CylinderGeometry has 3 groups: side, top, bottom
+  // We'll handle colours via material array
+
+  return { geometry: geom };
+}
+
+// ════════════════════════════════════════════════════════
+// LOAD A SHAPE
+// ════════════════════════════════════════════════════════
+function loadShape(key) {
+  clearCurrentMesh();
+  const shape = SHAPES[key];
+  const family = FAMILY_INFO[shape.family];
+
+  let result;
+  let bottomVerts, topVerts, baseVerts, apex;
+
+  if (shape.family === 'prism') {
+    result = buildPrism(shape.n, 2.4, 1.2);
+    bottomVerts = result.bottomVerts;
+    topVerts = result.topVerts;
+
+    const material = new THREE.MeshLambertMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
+    });
+    currentMesh = new THREE.Mesh(result.geometry, material);
+
+  } else if (shape.family === 'pyramid') {
+    result = buildPyramid(shape.n, 2.6, 1.4);
+    baseVerts = result.baseVerts;
+    apex = result.apex;
+
+    const material = new THREE.MeshLambertMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
+    });
+    currentMesh = new THREE.Mesh(result.geometry, material);
+
+  } else if (shape.family === 'cylinder') {
+    result = buildCylinder(2.6, 1.2, 48);
+    // CylinderGeometry has 3 material groups: 0=side, 1=top, 2=bottom.
+    // Side stays blue. Bases turn coral when "Highlight Bases" is on.
+    const sideMat = new THREE.MeshLambertMaterial({
+      color: 0x4a90e2,
+      side: THREE.DoubleSide,
+    });
+    const baseMat = new THREE.MeshLambertMaterial({
+      color: highlightBases ? 0xc0392b : 0x4a90e2,
+      side: THREE.DoubleSide,
+    });
+    currentMesh = new THREE.Mesh(result.geometry, [sideMat, baseMat, baseMat]);
+  }
+
+  scene.add(currentMesh);
+
+  // Add edges
+  if (showEdges) {
+    addEdges(shape, bottomVerts, topVerts, baseVerts, apex, result);
+  }
+
+  // Add vertices
+  if (showVertices && shape.family !== 'cylinder') {
+    addVertices(shape, bottomVerts, topVerts, baseVerts, apex);
+  }
+
+  // Update info panel
+  updateInfoPanel(key, shape, family);
+}
+
+function addEdges(shape, bottomVerts, topVerts, baseVerts, apex, result) {
+  if (shape.family === 'cylinder') {
+    // The cylinder has 2 edges in the Grade 7 sense: the top circle and the
+    // bottom circle (the boundaries where the curved surface meets each base).
+    // Use LineLoop for proper closed circles.
+    const r = 1.2, h = 2.6;
+    const topPts = [], botPts = [];
+    const segs = 64;
+    for (let i = 0; i < segs; i++) {
+      const a = (i / segs) * Math.PI * 2;
+      topPts.push(new THREE.Vector3(Math.cos(a) * r, h/2, Math.sin(a) * r));
+      botPts.push(new THREE.Vector3(Math.cos(a) * r, -h/2, Math.sin(a) * r));
+    }
+    const topGeom = new THREE.BufferGeometry().setFromPoints(topPts);
+    const botGeom = new THREE.BufferGeometry().setFromPoints(botPts);
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0x2c3e50 });
+
+    const topLine = new THREE.LineLoop(topGeom, edgeMat);
+    const botLine = new THREE.LineLoop(botGeom, edgeMat);
+    const group = new THREE.Group();
+    group.add(topLine);
+    group.add(botLine);
+    edgeLines = group;
+    scene.add(edgeLines);
+    return;
+  }
+
+  const positions = [];
+
+  if (shape.family === 'prism') {
+    const n = shape.n;
+    // Bottom ring
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      positions.push(...bottomVerts[i], ...bottomVerts[j]);
+    }
+    // Top ring
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      positions.push(...topVerts[i], ...topVerts[j]);
+    }
+    // Vertical edges
+    for (let i = 0; i < n; i++) {
+      positions.push(...bottomVerts[i], ...topVerts[i]);
+    }
+  } else if (shape.family === 'pyramid') {
+    const n = shape.n;
+    // Base ring
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      positions.push(...baseVerts[i], ...baseVerts[j]);
+    }
+    // Edges to apex
+    for (let i = 0; i < n; i++) {
+      positions.push(...baseVerts[i], ...apex);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const mat = new THREE.LineBasicMaterial({ color: 0x2c3e50, linewidth: 2 });
+  edgeLines = new THREE.LineSegments(geom, mat);
+  scene.add(edgeLines);
+}
+
+function addVertices(shape, bottomVerts, topVerts, baseVerts, apex) {
+  const verts = [];
+  if (shape.family === 'prism') {
+    bottomVerts.forEach(v => verts.push(v));
+    topVerts.forEach(v => verts.push(v));
+  } else if (shape.family === 'pyramid') {
+    baseVerts.forEach(v => verts.push(v));
+    verts.push(apex);
+  }
+
+  const geom = new THREE.BufferGeometry();
+  const positions = [];
+  verts.forEach(v => positions.push(...v));
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const mat = new THREE.PointsMaterial({
+    color: 0xf39c12,
+    size: 0.18,
+    sizeAttenuation: true,
+  });
+  vertexDots = new THREE.Points(geom, mat);
+  scene.add(vertexDots);
+}
+
+function updateInfoPanel(key, shape, family) {
+  document.getElementById('shape-name').textContent = shape.name;
+  document.getElementById('shape-base').textContent = shape.base;
+  document.getElementById('family-tag').textContent = family.label;
+  document.getElementById('family-tag').style.background = '#' + family.color.toString(16).padStart(6, '0');
+
+  document.getElementById('family-desc').textContent = family.desc;
+  document.getElementById('right-oblique').textContent = shape.rightOblique;
+
+  if (shape.family !== 'cylinder' && shape.F !== null) {
+    document.getElementById('face-count').textContent = shape.F;
+    document.getElementById('edge-count').textContent = shape.E;
+    document.getElementById('vertex-count').textContent = shape.V;
+    const sum = shape.F + shape.V;
+    const eulerRight = shape.E + 2;
+    const ok = sum === eulerRight;
+    document.getElementById('euler-check').innerHTML =
+      `${shape.F} + ${shape.V} = ${sum} = ${shape.E} + 2 ${ok ? '✓' : '✗'}`;
+  } else if (shape.family === 'cylinder') {
+    // Cylinder counts: 3 faces (2 circles + 1 curved), 2 edges (boundary
+    // circles), 0 vertices. Show the counts but explain why Euler doesn't apply.
+    document.getElementById('face-count').textContent = shape.F;
+    document.getElementById('edge-count').textContent = shape.E;
+    document.getElementById('vertex-count').textContent = shape.V;
+    document.getElementById('euler-check').innerHTML =
+      `${shape.F} + ${shape.V} = ${shape.F + shape.V}, but ${shape.E} + 2 = ${shape.E + 2}<br>` +
+      `<span style="color:#566573; font-size:11px;">Euler doesn't apply — the curved surface and curved edges break the rule.</span>`;
+  }
+
+  // Update active button
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`[data-key="${key}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+// BUILD SHAPE LIST UI
+// ════════════════════════════════════════════════════════
+function buildShapeList() {
+  const groups = {
+    prism: document.getElementById('prism-list'),
+    pyramid: document.getElementById('pyramid-list'),
+    cylinder: document.getElementById('cylinder-list'),
+  };
+
+  Object.entries(SHAPES).forEach(([key, shape]) => {
+    const btn = document.createElement('button');
+    btn.className = `shape-btn family-${shape.family}`;
+    btn.dataset.key = key;
+    btn.innerHTML = `${shape.name}<span class="meta">${shape.base}</span>`;
+    btn.addEventListener('click', () => loadShape(key));
+    groups[shape.family].appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// CONTROLS
+// ════════════════════════════════════════════════════════
+document.getElementById('toggle-edges').addEventListener('click', function() {
+  showEdges = !showEdges;
+  this.classList.toggle('toggled');
+  this.textContent = showEdges ? 'Edges ✓' : 'Edges';
+  reloadCurrent();
+});
+
+document.getElementById('toggle-vertices').addEventListener('click', function() {
+  showVertices = !showVertices;
+  this.classList.toggle('toggled');
+  this.textContent = showVertices ? 'Vertices ✓' : 'Vertices';
+  reloadCurrent();
+});
+
+document.getElementById('toggle-bases').addEventListener('click', function() {
+  highlightBases = !highlightBases;
+  this.classList.toggle('toggled');
+  this.textContent = highlightBases ? 'Highlight Bases ✓' : 'Highlight Bases';
+  reloadCurrent();
+});
+
+document.getElementById('toggle-rotate').addEventListener('click', function() {
+  autoRotate = !autoRotate;
+  this.classList.toggle('toggled');
+  this.textContent = autoRotate ? 'Auto-rotate ✓' : 'Auto-rotate';
+});
+
+document.getElementById('reset-view').addEventListener('click', function() {
+  rotationX = 0.3;
+  rotationY = 0;
+  zoom = 1;
+  panX = 0;
+  panY = 0;
+});
+
+let currentKey = 'tri-prism';
+function reloadCurrent() {
+  // Find the active button
+  const active = document.querySelector('.shape-btn.active');
+  if (active) currentKey = active.dataset.key;
+  loadShape(currentKey);
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER LOOP
+// ════════════════════════════════════════════════════════
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (autoRotate) {
+    rotationY += 0.005;
+  }
+
+  if (currentMesh) {
+    currentMesh.rotation.y = rotationY;
+    currentMesh.rotation.x = rotationX;
+    if (edgeLines) {
+      edgeLines.rotation.y = rotationY;
+      edgeLines.rotation.x = rotationX;
+    }
+    if (vertexDots) {
+      vertexDots.rotation.y = rotationY;
+      vertexDots.rotation.x = rotationX;
+    }
+  }
+
+  camera.position.x = panX;
+  camera.position.y = panY;
+  camera.position.z = 6 * zoom;
+  camera.lookAt(panX, panY, 0);
+
+  renderer.render(scene, camera);
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+initThree();
+buildShapeList();
+loadShape('tri-prism');
+animate();
+</script>
+
+</body>
+</html>

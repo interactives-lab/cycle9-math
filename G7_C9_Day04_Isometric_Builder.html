@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 4 — Isometric Builder</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite);
+    color: var(--slate);
+  }
+  .header {
+    background: var(--teal);
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal);
+    padding-bottom: 6px;
+  }
+  .panel h3 {
+    margin: 12px 0 6px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+  }
+  .instruction {
+    font-size: 12px;
+    color: var(--slate);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .top-view-area {
+    background: var(--light-grey);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .top-view-area svg { display: block; margin: 0 auto; }
+  .height-legend {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--grey);
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .ctrl-btn {
+    background: white;
+    border: 1px solid var(--grey);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--slate);
+    font-family: inherit;
+  }
+  .ctrl-btn:hover { background: var(--light-grey); }
+  .preset-btn {
+    background: var(--light-teal);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+  .clear-btn {
+    background: var(--light-coral);
+    border-color: var(--coral);
+    color: var(--coral);
+  }
+  .clear-btn:hover { background: var(--coral); color: white; }
+
+  .stats {
+    background: var(--light-teal);
+    border-left: 4px solid var(--teal);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .stats .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .stats .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--slate);
+  }
+
+  .projection-panel {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .projection-panel.iso { border-left: 4px solid var(--teal); }
+  .projection-panel.cabinet { border-left: 4px solid var(--purp); }
+  .projection-panel .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .projection-panel h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .projection-panel.iso h3 { color: var(--teal); }
+  .projection-panel.cabinet h3 { color: var(--purp); }
+  .projection-canvas {
+    background: white;
+    border: 1px solid var(--light-grey);
+    border-radius: 4px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 240px;
+  }
+  .toggle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .toggle-btn {
+    background: white;
+    border: 1px solid var(--grey);
+    padding: 4px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--slate);
+    font-family: inherit;
+  }
+  .toggle-btn:hover { background: var(--light-grey); }
+  .toggle-btn.on {
+    background: var(--gold);
+    color: white;
+    border-color: var(--gold);
+  }
+
+  .info-line {
+    font-size: 11px;
+    color: var(--grey);
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .axis-label {
+    font-weight: 700;
+  }
+  .axis-label.width  { color: var(--teal); }
+  .axis-label.depth  { color: var(--purp); }
+  .axis-label.height { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Isometric Builder</h1>
+  <span class="badge">CYCLE 9 • DAY 4 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <!-- LEFT: BUILD AREA -->
+  <div class="panel">
+    <h2>Build Your Structure</h2>
+    <p class="instruction">Click a cell to add a cube. Click again to stack. Right-click to remove. Watch both perspective drawings render on the right.</p>
+
+    <div class="top-view-area">
+      <svg id="build-grid" width="280" height="280"></svg>
+      <div class="height-legend">Top-down editable view</div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn preset-btn" data-preset="cube1">1×1×1 cube</button>
+      <button class="ctrl-btn preset-btn" data-preset="cube2">2×2×2 cube</button>
+      <button class="ctrl-btn preset-btn" data-preset="L4">4-cube L</button>
+      <button class="ctrl-btn preset-btn" data-preset="staircase">Staircase</button>
+      <button class="ctrl-btn preset-btn" data-preset="tower">Tower</button>
+      <button class="ctrl-btn clear-btn" id="clear-btn">Clear</button>
+    </div>
+
+    <div class="stats">
+      <div class="label">Total cubes</div>
+      <div class="value" id="cube-count">0</div>
+    </div>
+
+    <div class="info-line">
+      <strong>Axes:</strong>
+      <span class="axis-label width">WIDTH</span> goes left–right ·
+      <span class="axis-label depth">DEPTH</span> goes front–back ·
+      <span class="axis-label height">HEIGHT</span> goes up
+    </div>
+  </div>
+
+  <!-- RIGHT: PROJECTIONS -->
+  <div class="panel">
+    <h2>Two Perspective Drawings</h2>
+    <p class="instruction">As you build on the left, see the same structure in two different perspective drawing systems. Compare them.</p>
+
+    <!-- ISOMETRIC -->
+    <div class="projection-panel iso">
+      <div class="title-row">
+        <h3>Isometric Projection</h3>
+        <span style="font-size:10px; color: var(--grey); font-style: italic;">3 axes at 120°, all same scale</span>
+      </div>
+      <div class="projection-canvas">
+        <svg id="iso-view" width="380" height="240"></svg>
+      </div>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="iso-show-dots">Show iso dot grid</button>
+        <button class="toggle-btn" id="iso-show-axes">Show 30° construction lines</button>
+        <button class="toggle-btn" id="iso-show-labels">Label axes</button>
+      </div>
+    </div>
+
+    <!-- CABINET -->
+    <div class="projection-panel cabinet">
+      <div class="title-row">
+        <h3>Cabinet Projection</h3>
+        <span style="font-size:10px; color: var(--grey); font-style: italic;">front face real, depth at 45° half-scale</span>
+      </div>
+      <div class="projection-canvas">
+        <svg id="cab-view" width="380" height="240"></svg>
+      </div>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="cab-show-front">Highlight front face</button>
+        <button class="toggle-btn" id="cab-show-labels">Label axes</button>
+      </div>
+    </div>
+
+    <div class="info-line">
+      <strong>Notice:</strong> in isometric, every cube edge appears the same length. In cabinet, the FRONT face looks like a real square but the DEPTH edges are visibly half as long — that's the half-scale rule.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const GRID_SIZE = 5;
+let heights = [];
+for (let x = 0; x < GRID_SIZE; x++) {
+  heights.push(new Array(GRID_SIZE).fill(0));
+}
+
+let isoShowDots = false;
+let isoShowAxes = false;
+let isoShowLabels = false;
+let cabShowFront = false;
+let cabShowLabels = false;
+
+const NS = 'http://www.w3.org/2000/svg';
+
+// ════════════════════════════════════════════════════════
+// BUILD GRID (top-down editable view)
+// ════════════════════════════════════════════════════════
+const buildSvg = document.getElementById('build-grid');
+const CELL = 50;
+const PAD = 15;
+
+function renderBuildGrid() {
+  buildSvg.innerHTML = '';
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      const h = heights[x][z];
+      const px = PAD + x * CELL;
+      const py = PAD + z * CELL;
+
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', px);
+      rect.setAttribute('y', py);
+      rect.setAttribute('width', CELL);
+      rect.setAttribute('height', CELL);
+      let fill = '#ffffff';
+      if (h === 1) fill = '#D5E8E2';
+      else if (h === 2) fill = '#A6D0C2';
+      else if (h === 3) fill = '#77B8A2';
+      else if (h === 4) fill = '#4AA082';
+      else if (h >= 5) fill = '#0E6655';
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('stroke', '#566573');
+      rect.setAttribute('stroke-width', '1');
+      rect.style.cursor = 'pointer';
+      rect.addEventListener('click', () => {
+        if (heights[x][z] < 6) heights[x][z]++;
+        renderAll();
+      });
+      rect.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (heights[x][z] > 0) heights[x][z]--;
+        renderAll();
+      });
+      buildSvg.appendChild(rect);
+
+      if (h > 0) {
+        const text = document.createElementNS(NS, 'text');
+        text.setAttribute('x', px + CELL/2);
+        text.setAttribute('y', py + CELL/2 + 6);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '18');
+        text.setAttribute('font-weight', '700');
+        text.setAttribute('fill', h >= 4 ? '#ffffff' : '#2C3E50');
+        text.style.pointerEvents = 'none';
+        text.textContent = h;
+        buildSvg.appendChild(text);
+      }
+    }
+  }
+
+  // Axis labels
+  const labels = [
+    { text: 'WIDTH →', x: PAD + GRID_SIZE * CELL / 2, y: PAD + GRID_SIZE * CELL + 18, anchor: 'middle' },
+    { text: '← DEPTH', x: PAD - 4, y: PAD + GRID_SIZE * CELL / 2 + 4, anchor: 'end' },
+  ];
+  labels.forEach(l => {
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', l.x);
+    text.setAttribute('y', l.y);
+    text.setAttribute('text-anchor', l.anchor);
+    text.setAttribute('font-size', '10');
+    text.setAttribute('fill', '#566573');
+    text.textContent = l.text;
+    buildSvg.appendChild(text);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// ISOMETRIC PROJECTION (verified math from Day 3)
+// ════════════════════════════════════════════════════════
+const ISO_SCALE = 24;
+const ISO_COS30 = Math.cos(Math.PI / 6);
+const ISO_SIN30 = Math.sin(Math.PI / 6);
+
+function isoProject(x, y, z) {
+  const sx = (x - z) * ISO_COS30 * ISO_SCALE;
+  const sy = ((x + z) * ISO_SIN30 - y) * ISO_SCALE;
+  return [sx, sy];
+}
+
+function renderIso() {
+  const svg = document.getElementById('iso-view');
+  svg.innerHTML = '';
+  const W = 380, H = 240;
+
+  let totalCubes = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      totalCubes += heights[x][z];
+    }
+  }
+
+  if (totalCubes === 0) {
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', W/2);
+    text.setAttribute('y', H/2);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '13');
+    text.setAttribute('fill', '#566573');
+    text.setAttribute('font-style', 'italic');
+    text.textContent = 'Click cells on the left to build a structure.';
+    svg.appendChild(text);
+    return;
+  }
+
+  // Optional iso dot grid background
+  if (isoShowDots) {
+    const cx0 = W/2, cy0 = H/2 + 30;
+    for (let i = -8; i <= 8; i++) {
+      for (let j = -8; j <= 8; j++) {
+        // Iso dot grid: rows offset by half-step
+        const sx = cx0 + i * ISO_SCALE * ISO_COS30 + (j % 2 === 0 ? 0 : ISO_SCALE * ISO_COS30 / 2);
+        const sy = cy0 + j * ISO_SCALE * ISO_SIN30;
+        if (sx > 5 && sx < W-5 && sy > 5 && sy < H-5) {
+          const dot = document.createElementNS(NS, 'circle');
+          dot.setAttribute('cx', sx);
+          dot.setAttribute('cy', sy);
+          dot.setAttribute('r', '1.2');
+          dot.setAttribute('fill', '#B7C0C8');
+          svg.appendChild(dot);
+        }
+      }
+    }
+  }
+
+  // Center the structure
+  let minSx = Infinity, maxSx = -Infinity, minSy = Infinity, maxSy = -Infinity;
+  for (let x = 0; x <= GRID_SIZE; x++) {
+    for (let z = 0; z <= GRID_SIZE; z++) {
+      for (let y = 0; y <= 6; y++) {
+        const [sx, sy] = isoProject(x, y, z);
+        if (sx < minSx) minSx = sx;
+        if (sx > maxSx) maxSx = sx;
+        if (sy < minSy) minSy = sy;
+        if (sy > maxSy) maxSy = sy;
+      }
+    }
+  }
+  // Use only filled cube positions for centering
+  let useMinSx = Infinity, useMaxSx = -Infinity, useMinSy = Infinity, useMaxSy = -Infinity;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      if (heights[x][z] > 0) {
+        for (let xx of [x, x+1]) for (let zz of [z, z+1]) for (let yy of [0, heights[x][z]]) {
+          const [sx, sy] = isoProject(xx, yy, zz);
+          if (sx < useMinSx) useMinSx = sx;
+          if (sx > useMaxSx) useMaxSx = sx;
+          if (sy < useMinSy) useMinSy = sy;
+          if (sy > useMaxSy) useMaxSy = sy;
+        }
+      }
+    }
+  }
+  const cx = (useMinSx + useMaxSx) / 2;
+  const cy = (useMinSy + useMaxSy) / 2;
+  const offsetX = W / 2 - cx;
+  const offsetY = H / 2 - cy;
+
+  // Optional construction lines (the 30° axes)
+  if (isoShowAxes) {
+    // Draw 3 reference axes from origin
+    const origin = isoProject(0, 0, 0);
+    const wEnd   = isoProject(2, 0, 0);  // width axis
+    const dEnd   = isoProject(0, 0, 2);  // depth axis
+    const hEnd   = isoProject(0, 2, 0);  // height axis
+    [
+      { from: origin, to: wEnd, color: '#0E6655', label: 'WIDTH' },
+      { from: origin, to: dEnd, color: '#6C3483', label: 'DEPTH' },
+      { from: origin, to: hEnd, color: '#B7950B', label: 'HEIGHT' },
+    ].forEach(ax => {
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', ax.from[0] + offsetX);
+      line.setAttribute('y1', ax.from[1] + offsetY);
+      line.setAttribute('x2', ax.to[0] + offsetX);
+      line.setAttribute('y2', ax.to[1] + offsetY);
+      line.setAttribute('stroke', ax.color);
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-dasharray', '4,3');
+      svg.appendChild(line);
+    });
+  }
+
+  // Collect all cube positions
+  const cubes = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      for (let y = 0; y < heights[x][z]; y++) {
+        cubes.push([x, y, z]);
+      }
+    }
+  }
+
+  // Painter's order: draw farthest first
+  cubes.sort((a, b) => {
+    if (a[2] !== b[2]) return b[2] - a[2];  // higher z = back, draw first
+    if (a[0] !== b[0]) return a[0] - b[0];  // lower x = left, draw first
+    return a[1] - b[1];                      // lower y = bottom, draw first
+  });
+
+  cubes.forEach(([x, y, z]) => {
+    drawIsoCube(svg, x, y, z, offsetX, offsetY);
+  });
+
+  // Optional axis labels
+  if (isoShowLabels) {
+    const wEnd = isoProject(2, 0, 0);
+    const dEnd = isoProject(0, 0, 2);
+    const hEnd = isoProject(0, 2, 0);
+    const labels = [
+      { pos: wEnd, text: 'WIDTH',  color: '#0E6655' },
+      { pos: dEnd, text: 'DEPTH',  color: '#6C3483' },
+      { pos: hEnd, text: 'HEIGHT', color: '#B7950B' },
+    ];
+    labels.forEach(l => {
+      const text = document.createElementNS(NS, 'text');
+      text.setAttribute('x', l.pos[0] + offsetX + 5);
+      text.setAttribute('y', l.pos[1] + offsetY + 4);
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-weight', '700');
+      text.setAttribute('fill', l.color);
+      text.textContent = l.text;
+      svg.appendChild(text);
+    });
+  }
+}
+
+function drawIsoCube(svg, x, y, z, offsetX, offsetY) {
+  const v = [
+    isoProject(x,   y,   z  ),
+    isoProject(x+1, y,   z  ),
+    isoProject(x+1, y,   z+1),
+    isoProject(x,   y,   z+1),
+    isoProject(x,   y+1, z  ),
+    isoProject(x+1, y+1, z  ),
+    isoProject(x+1, y+1, z+1),
+    isoProject(x,   y+1, z+1),
+  ];
+  const sv = v.map(p => [p[0] + offsetX, p[1] + offsetY]);
+
+  const faces = [
+    { verts: [4, 5, 6, 7], fill: '#A6D0C2', stroke: '#0E6655' },  // top — light teal
+    { verts: [0, 1, 5, 4], fill: '#7BB89F', stroke: '#0E6655' },  // front
+    { verts: [1, 2, 6, 5], fill: '#4F9F7C', stroke: '#0E6655' },  // right
+  ];
+
+  faces.forEach(f => {
+    const points = f.verts.map(i => `${sv[i][0]},${sv[i][1]}`).join(' ');
+    const poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', points);
+    poly.setAttribute('fill', f.fill);
+    poly.setAttribute('stroke', f.stroke);
+    poly.setAttribute('stroke-width', '1.2');
+    poly.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(poly);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// CABINET PROJECTION (verified math)
+// ════════════════════════════════════════════════════════
+const CAB_SCALE = 28;
+// Cabinet: width = horizontal, height = vertical (both full scale)
+// depth = 45° down-left at HALF scale
+function cabProject(x, y, z) {
+  const sx = x * CAB_SCALE - z * CAB_SCALE * Math.cos(Math.PI/4) * 0.5;
+  const sy = -y * CAB_SCALE + z * CAB_SCALE * Math.sin(Math.PI/4) * 0.5;
+  return [sx, sy];
+}
+
+function renderCab() {
+  const svg = document.getElementById('cab-view');
+  svg.innerHTML = '';
+  const W = 380, H = 240;
+
+  let totalCubes = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      totalCubes += heights[x][z];
+    }
+  }
+
+  if (totalCubes === 0) {
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', W/2);
+    text.setAttribute('y', H/2);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '13');
+    text.setAttribute('fill', '#566573');
+    text.setAttribute('font-style', 'italic');
+    text.textContent = 'Click cells on the left to build a structure.';
+    svg.appendChild(text);
+    return;
+  }
+
+  // Center
+  let minSx = Infinity, maxSx = -Infinity, minSy = Infinity, maxSy = -Infinity;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      if (heights[x][z] > 0) {
+        for (let xx of [x, x+1]) for (let zz of [z, z+1]) for (let yy of [0, heights[x][z]]) {
+          const [sx, sy] = cabProject(xx, yy, zz);
+          if (sx < minSx) minSx = sx;
+          if (sx > maxSx) maxSx = sx;
+          if (sy < minSy) minSy = sy;
+          if (sy > maxSy) maxSy = sy;
+        }
+      }
+    }
+  }
+  const cx = (minSx + maxSx) / 2;
+  const cy = (minSy + maxSy) / 2;
+  const offsetX = W / 2 - cx;
+  const offsetY = H / 2 - cy;
+
+  const cubes = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      for (let y = 0; y < heights[x][z]; y++) {
+        cubes.push([x, y, z]);
+      }
+    }
+  }
+  cubes.sort((a, b) => {
+    if (a[2] !== b[2]) return b[2] - a[2];
+    if (a[0] !== b[0]) return a[0] - b[0];
+    return a[1] - b[1];
+  });
+
+  cubes.forEach(([x, y, z]) => {
+    drawCabCube(svg, x, y, z, offsetX, offsetY);
+  });
+
+  if (cabShowLabels) {
+    const wEnd = cabProject(2, 0, 0);
+    const dEnd = cabProject(0, 0, 2);
+    const hEnd = cabProject(0, 2, 0);
+    const labels = [
+      { pos: wEnd, text: 'WIDTH',  color: '#0E6655' },
+      { pos: dEnd, text: 'DEPTH (½ scale)',  color: '#6C3483' },
+      { pos: hEnd, text: 'HEIGHT', color: '#B7950B' },
+    ];
+    labels.forEach(l => {
+      const text = document.createElementNS(NS, 'text');
+      text.setAttribute('x', l.pos[0] + offsetX + 5);
+      text.setAttribute('y', l.pos[1] + offsetY + 4);
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-weight', '700');
+      text.setAttribute('fill', l.color);
+      text.textContent = l.text;
+      svg.appendChild(text);
+    });
+  }
+}
+
+function drawCabCube(svg, x, y, z, offsetX, offsetY) {
+  const v = [
+    cabProject(x,   y,   z  ),
+    cabProject(x+1, y,   z  ),
+    cabProject(x+1, y,   z+1),
+    cabProject(x,   y,   z+1),
+    cabProject(x,   y+1, z  ),
+    cabProject(x+1, y+1, z  ),
+    cabProject(x+1, y+1, z+1),
+    cabProject(x,   y+1, z+1),
+  ];
+  const sv = v.map(p => [p[0] + offsetX, p[1] + offsetY]);
+
+  // Front face (z=0): vertices 0, 1, 5, 4 — this is the REAL-SIZE square
+  // Right side (depth-shrunk): vertices 1, 2, 6, 5
+  // Top: vertices 4, 5, 6, 7
+
+  const frontFill = cabShowFront ? '#F5D9D4' : '#C8B5DC';
+
+  const faces = [
+    { verts: [4, 5, 6, 7], fill: '#9F7BC0', stroke: '#6C3483' },  // top
+    { verts: [0, 1, 5, 4], fill: frontFill, stroke: cabShowFront ? '#C0392B' : '#6C3483' },  // front (real-size square)
+    { verts: [1, 2, 6, 5], fill: '#7B5A9F', stroke: '#6C3483' },  // right (depth-shrunk)
+  ];
+
+  faces.forEach(f => {
+    const points = f.verts.map(i => `${sv[i][0]},${sv[i][1]}`).join(' ');
+    const poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', points);
+    poly.setAttribute('fill', f.fill);
+    poly.setAttribute('stroke', f.stroke);
+    poly.setAttribute('stroke-width', cabShowFront && f.verts[0] === 0 ? '2.5' : '1.2');
+    poly.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(poly);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// MASTER RENDER
+// ════════════════════════════════════════════════════════
+function renderAll() {
+  renderBuildGrid();
+  renderIso();
+  renderCab();
+
+  let total = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      total += heights[x][z];
+    }
+  }
+  document.getElementById('cube-count').textContent = total;
+}
+
+// ════════════════════════════════════════════════════════
+// PRESETS
+// ════════════════════════════════════════════════════════
+function clearGrid() {
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      heights[x][z] = 0;
+    }
+  }
+}
+
+function applyPreset(name) {
+  clearGrid();
+  if (name === 'cube1') {
+    heights[2][2] = 1;
+  } else if (name === 'cube2') {
+    // 2x2x2 = 8 cubes
+    heights[1][1] = 2;
+    heights[1][2] = 2;
+    heights[2][1] = 2;
+    heights[2][2] = 2;
+  } else if (name === 'L4') {
+    heights[0][2] = 2;
+    heights[1][2] = 1;
+    heights[2][2] = 1;
+  } else if (name === 'staircase') {
+    heights[0][2] = 1;
+    heights[1][2] = 2;
+    heights[2][2] = 3;
+  } else if (name === 'tower') {
+    heights[2][2] = 4;
+    heights[3][2] = 1;
+  }
+  renderAll();
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+});
+document.getElementById('clear-btn').addEventListener('click', () => {
+  clearGrid();
+  renderAll();
+});
+
+// Toggle handlers
+document.getElementById('iso-show-dots').addEventListener('click', function() {
+  isoShowDots = !isoShowDots;
+  this.classList.toggle('on');
+  renderIso();
+});
+document.getElementById('iso-show-axes').addEventListener('click', function() {
+  isoShowAxes = !isoShowAxes;
+  this.classList.toggle('on');
+  renderIso();
+});
+document.getElementById('iso-show-labels').addEventListener('click', function() {
+  isoShowLabels = !isoShowLabels;
+  this.classList.toggle('on');
+  renderIso();
+});
+document.getElementById('cab-show-front').addEventListener('click', function() {
+  cabShowFront = !cabShowFront;
+  this.classList.toggle('on');
+  renderCab();
+});
+document.getElementById('cab-show-labels').addEventListener('click', function() {
+  cabShowLabels = !cabShowLabels;
+  this.classList.toggle('on');
+  renderCab();
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+applyPreset('L4');
+</script>
+
+</body>
+</html>

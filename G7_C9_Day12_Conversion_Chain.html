@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 12 — Conversion Chain</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) {
+    .input-grid { grid-template-columns: 1fr; }
+  }
+  .input-group {
+    background: var(--offwhite);
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--grey);
+    border-radius: 3px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 6px 11px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .chain-steps {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .step-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+    position: relative;
+  }
+  .step-card.s1 { border-left-color: var(--teal); }
+  .step-card.s2 { border-left-color: var(--purp); }
+  .step-card.s3 { border-left-color: var(--gold); }
+  .step-card.s4 { border-left-color: var(--green); }
+  .step-card.s5 { border-left-color: var(--coral); }
+  .step-card .step-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+  .step-card.s1 .step-label { color: var(--teal); }
+  .step-card.s2 .step-label { color: var(--purp); }
+  .step-card.s3 .step-label { color: var(--gold); }
+  .step-card.s4 .step-label { color: var(--green); }
+  .step-card.s5 .step-label { color: var(--coral); }
+  .step-card .step-formula {
+    font-size: 12px;
+    color: var(--grey);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .step-card .step-result {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-top: 6px;
+  }
+  .step-card.s1 .step-result { color: var(--teal); }
+  .step-card.s2 .step-result { color: var(--purp); }
+  .step-card.s3 .step-result { color: var(--gold); }
+  .step-card.s4 .step-result { color: var(--green); }
+  .step-card.s5 .step-result { color: var(--coral); }
+
+  .final-answer {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: var(--slate);
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .final-answer .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .final-answer .value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Conversion Chain</h1>
+  <span class="badge">CYCLE 9 • DAY 12 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Enter Your Tank</h2>
+    <p class="instruction">Type the dimensions of the tank in METRES and the size of the individual cup in mL. The five-step conversion chain runs live as you type.</p>
+
+    <div class="input-grid">
+      <div class="input-group">
+        <label>Length (m)</label>
+        <input type="number" id="length-input" value="1" min="0.1" max="100" step="0.1">
+      </div>
+      <div class="input-group">
+        <label>Width (m)</label>
+        <input type="number" id="width-input" value="2" min="0.1" max="100" step="0.1">
+      </div>
+      <div class="input-group">
+        <label>Height (m)</label>
+        <input type="number" id="height-input" value="3" min="0.1" max="100" step="0.1">
+      </div>
+      <div class="input-group">
+        <label>Cup capacity (mL)</label>
+        <input type="number" id="cup-input" value="250" min="1" max="10000" step="1">
+      </div>
+    </div>
+
+    <div class="preset-btns">
+      <button class="preset-btn" data-l="1" data-w="2" data-h="3" data-c="250">Curriculum Tank (S1)</button>
+      <button class="preset-btn" data-l="2" data-w="1.5" data-h="1" data-c="250">Exit Ticket Tank</button>
+      <button class="preset-btn" data-l="4" data-w="3" data-h="2.5" data-c="250">Room (S2)</button>
+      <button class="preset-btn" data-l="25" data-w="12" data-h="2" data-c="500">Swimming Pool (S4)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>The Five-Step Chain</h2>
+    <p class="instruction">Watch each step execute in sequence. The result of each step feeds into the next.</p>
+
+    <div class="chain-steps">
+      <div class="step-card s1">
+        <div class="step-label">Step 1 — Compute Volume in m³</div>
+        <div class="step-formula" id="formula-1">V = l × w × h = 1 × 2 × 3</div>
+        <div class="step-result" id="result-1">6 m³</div>
+      </div>
+      <div class="step-card s2">
+        <div class="step-label">Step 2 — Convert m³ → cm³ (factor 100³ = 1,000,000)</div>
+        <div class="step-formula" id="formula-2">6 × 1,000,000</div>
+        <div class="step-result" id="result-2">6,000,000 cm³</div>
+      </div>
+      <div class="step-card s3">
+        <div class="step-label">Step 3 — Convert cm³ → mL (1 cm³ = 1 mL)</div>
+        <div class="step-formula" id="formula-3">Same number, different unit</div>
+        <div class="step-result" id="result-3">6,000,000 mL  =  6,000 L</div>
+      </div>
+      <div class="step-card s4">
+        <div class="step-label">Step 4 — Divide by Cup Capacity</div>
+        <div class="step-formula" id="formula-4">6,000,000 mL ÷ 250 mL/cup</div>
+        <div class="step-result" id="result-4">24,000 cups</div>
+      </div>
+      <div class="step-card s5">
+        <div class="step-label">Step 5 — Sanity Check</div>
+        <div class="step-formula" id="formula-5">Is this magnitude reasonable?</div>
+        <div class="step-result" id="result-5">A 6 m³ tank ≈ 30 bathtubs → 24,000 cups ✓</div>
+      </div>
+    </div>
+
+    <div class="final-answer">
+      <div class="label">Final Answer</div>
+      <div class="value" id="final-answer">24,000 cups</div>
+    </div>
+
+    <div class="insight-box">
+      <strong>The full chain in one breath:</strong> volume in m³ → multiply by a million to get cm³ → relabel as mL → divide by the individual cup → sanity check. Five steps, five units, one answer. Yesterday's k³ rule provides Step 2; Day 10's workflow provides Steps 1, 4, and 5; Day 9's equivalence provides Step 3. Every measurement problem in the rest of the cycle uses this chain.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// MATH (Python-verified for all preset values)
+// ════════════════════════════════════════════════════════
+function formatNum(n) {
+  // Round to avoid floating-point display issues
+  if (Number.isInteger(n) || Math.abs(n - Math.round(n)) < 1e-9) {
+    return Math.round(n).toLocaleString();
+  }
+  // Show decimals for non-integers
+  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function computeChain() {
+  const l = parseFloat(document.getElementById('length-input').value) || 0;
+  const w = parseFloat(document.getElementById('width-input').value) || 0;
+  const h = parseFloat(document.getElementById('height-input').value) || 0;
+  const c = parseFloat(document.getElementById('cup-input').value) || 1;
+
+  // Step 1: Volume in m³
+  const v_m3 = l * w * h;
+  document.getElementById('formula-1').textContent =
+    `V = l × w × h = ${l} × ${w} × ${h}`;
+  document.getElementById('result-1').textContent =
+    `${formatNum(v_m3)} m³`;
+
+  // Step 2: Convert m³ → cm³
+  const v_cm3 = v_m3 * 1_000_000;
+  document.getElementById('formula-2').textContent =
+    `${formatNum(v_m3)} × 1,000,000  (factor 100³)`;
+  document.getElementById('result-2').textContent =
+    `${formatNum(v_cm3)} cm³`;
+
+  // Step 3: Convert cm³ → mL
+  const v_ml = v_cm3;  // 1 cm³ = 1 mL
+  const v_l = v_ml / 1000;
+  document.getElementById('formula-3').textContent =
+    `Same number, different unit`;
+  document.getElementById('result-3').textContent =
+    `${formatNum(v_ml)} mL  =  ${formatNum(v_l)} L`;
+
+  // Step 4: Divide
+  const cups = Math.floor(v_ml / c);
+  document.getElementById('formula-4').textContent =
+    `${formatNum(v_ml)} mL ÷ ${c} mL/cup`;
+  document.getElementById('result-4').textContent =
+    `${formatNum(cups)} cups`;
+
+  // Step 5: Sanity check
+  let sanity;
+  if (v_l < 1) {
+    sanity = `Tiny tank (${formatNum(v_l)} L) — ${formatNum(cups)} cups for less than a litre.`;
+  } else if (v_l < 50) {
+    sanity = `Small tank (${formatNum(v_l)} L) — about a small fish tank or large bucket.`;
+  } else if (v_l < 1000) {
+    sanity = `Medium tank (${formatNum(v_l)} L) — like a hot tub. ${formatNum(cups)} cups ✓`;
+  } else if (v_l < 100000) {
+    sanity = `Large tank (${formatNum(v_l)} L ≈ ${Math.round(v_l/200)} bathtubs) → ${formatNum(cups)} cups ✓`;
+  } else {
+    sanity = `HUGE tank (${formatNum(v_l)} L) — pool or industrial scale.`;
+  }
+  document.getElementById('formula-5').textContent =
+    'Is this magnitude reasonable for the tank size?';
+  document.getElementById('result-5').textContent = sanity;
+
+  // Final answer
+  document.getElementById('final-answer').textContent = `${formatNum(cups)} cups`;
+}
+
+// ════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ════════════════════════════════════════════════════════
+['length-input', 'width-input', 'height-input', 'cup-input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', computeChain);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('length-input').value = btn.dataset.l;
+    document.getElementById('width-input').value = btn.dataset.w;
+    document.getElementById('height-input').value = btn.dataset.h;
+    document.getElementById('cup-input').value = btn.dataset.c;
+    computeChain();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+computeChain();
+</script>
+
+</body>
+</html>

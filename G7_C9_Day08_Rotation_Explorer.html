@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 8 — Rotation Explorer</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px; padding: 16px;
+    max-width: 1300px; margin: 0 auto;
+  }
+  @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 10px; line-height: 1.5; font-style: italic;
+  }
+
+  .canvas-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px; padding: 8px;
+    text-align: center;
+  }
+  .canvas-area svg { display: block; margin: 0 auto; background: white; }
+
+  .controls-row {
+    margin-top: 12px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .control-group {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+  .control-group .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--grey); font-weight: 700;
+    margin-bottom: 6px; display: block;
+  }
+
+  .rotate-buttons {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .rotate-btn {
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 8px 14px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    color: var(--slate); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .rotate-btn:hover { background: var(--light-grey); }
+  .rotate-btn.active.r0 {
+    background: var(--grey); color: white; border-color: var(--grey);
+  }
+  .rotate-btn.active.r90 {
+    background: var(--teal); color: white; border-color: var(--teal);
+  }
+  .rotate-btn.active.r180 {
+    background: var(--purp); color: white; border-color: var(--purp);
+  }
+  .rotate-btn.active.r270 {
+    background: var(--gold); color: white; border-color: var(--gold);
+  }
+
+  .toggle-btn {
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 5px 11px;
+    border-radius: 3px; cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--slate); font-family: inherit;
+  }
+  .toggle-btn:hover { background: var(--light-grey); }
+  .toggle-btn.on {
+    background: var(--coral); color: white; border-color: var(--coral);
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 5px 10px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .stats-area {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .rule-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+  }
+  .rule-card.r0 { border-left-color: var(--grey); }
+  .rule-card.r90 { border-left-color: var(--teal); }
+  .rule-card.r180 { border-left-color: var(--purp); }
+  .rule-card.r270 { border-left-color: var(--gold); }
+  .rule-card .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--grey); font-weight: 700;
+  }
+  .rule-card.r90 .label { color: var(--teal); }
+  .rule-card.r180 .label { color: var(--purp); }
+  .rule-card.r270 .label { color: var(--gold); }
+  .rule-card .formula {
+    font-size: 17px; font-weight: 700;
+    color: var(--slate); margin-top: 4px;
+    font-family: 'Calibri', sans-serif;
+  }
+
+  .vertex-table {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px;
+  }
+  .vertex-table .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--grey); font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .vertex-table table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .vertex-table th {
+    background: var(--slate); color: white;
+    padding: 5px 8px; text-align: left;
+    font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .vertex-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--light-grey);
+  }
+  .vertex-table .v-name {
+    font-weight: 700; color: var(--slate);
+  }
+  .vertex-table .orig {
+    color: var(--teal); font-weight: 600;
+  }
+  .vertex-table .arrow {
+    color: var(--grey); text-align: center;
+  }
+  .vertex-table .new {
+    color: var(--coral); font-weight: 600;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-green);
+    border-left: 4px solid var(--green);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Rotation Explorer</h1>
+  <span class="badge">CYCLE 9 • DAY 8 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <!-- LEFT: CANVAS + CONTROLS -->
+  <div class="panel">
+    <h2>Watch the Rotation</h2>
+    <p class="instruction">The original triangle is teal. Click a rotation angle and watch the coral image appear. The origin (gold star) is the center of rotation — it never moves. Drag any vertex to change the shape.</p>
+
+    <div class="canvas-area">
+      <svg id="canvas" width="500" height="420"></svg>
+    </div>
+
+    <div class="controls-row">
+      <div class="control-group">
+        <span class="label">Choose a rotation angle</span>
+        <div class="rotate-buttons">
+          <button class="rotate-btn r0" data-angle="0">0° (identity)</button>
+          <button class="rotate-btn r90 active" data-angle="90">90° CCW</button>
+          <button class="rotate-btn r180" data-angle="180">180°</button>
+          <button class="rotate-btn r270" data-angle="270">270° CCW</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="label">Visualization options</span>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="toggle-btn on" id="toggle-arcs">Show rotation arcs</button>
+          <button class="toggle-btn" id="toggle-circles">Show rotation circles</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="label">Quick triangle presets</span>
+        <div class="preset-btns" id="presets">
+          <button class="preset-btn" data-preset="curriculum">Curriculum: (0,0)(3,0)(0,2)</button>
+          <button class="preset-btn" data-preset="point35">Single point: (3,5)</button>
+          <button class="preset-btn" data-preset="square">Square (1,1)(3,1)(3,3)(1,3)</button>
+          <button class="preset-btn" data-preset="ABC">ABC: A(2,0)B(5,0)C(5,3)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: RULE + VERTEX TABLE -->
+  <div class="panel">
+    <h2>The Rotation Rule</h2>
+    <p class="instruction">Each rotation has a coordinate rule. Watch the rule and the vertex table update as you switch between angles.</p>
+
+    <div class="stats-area">
+      <div class="rule-card r90" id="rule-card">
+        <div class="label" id="rule-label">90° CCW rotation rule</div>
+        <div class="formula" id="rule-formula">(x, y) → (-y, x)</div>
+      </div>
+
+      <div class="vertex-table">
+        <div class="label">Vertex mapping</div>
+        <table>
+          <thead>
+            <tr><th>Vertex</th><th>Original</th><th></th><th>Image</th></tr>
+          </thead>
+          <tbody id="vertex-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <strong>Notice:</strong> the origin (0, 0) is FIXED under any rotation about the origin — it's the center of the rotation. Translations have no fixed points. Reflections have a whole line of fixed points (the mirror line). Rotations have exactly ONE.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let currentAngle = 90;
+let showArcs = true;
+let showCircles = false;
+let vertices = [
+  { name: 'A', x: 0, y: 0 },
+  { name: 'B', x: 3, y: 0 },
+  { name: 'C', x: 0, y: 2 },
+];
+
+const NS = 'http://www.w3.org/2000/svg';
+
+// Canvas setup
+const canvas = document.getElementById('canvas');
+const W = 500, H = 420;
+const UNIT = 22;
+const ORIGIN_X = W / 2;
+const ORIGIN_Y = H / 2;
+
+function worldToScreen(x, y) {
+  return [ORIGIN_X + x * UNIT, ORIGIN_Y - y * UNIT];
+}
+
+function screenToWorld(sx, sy) {
+  return [(sx - ORIGIN_X) / UNIT, (ORIGIN_Y - sy) / UNIT];
+}
+
+// ════════════════════════════════════════════════════════
+// ROTATION (Python-verified)
+// ════════════════════════════════════════════════════════
+function rotate(verts, angle) {
+  return verts.map(v => {
+    if (angle === 0) {
+      return { name: v.name, x: v.x, y: v.y };
+    } else if (angle === 90) {
+      return { name: v.name, x: -v.y, y: v.x };
+    } else if (angle === 180) {
+      return { name: v.name, x: -v.x, y: -v.y };
+    } else if (angle === 270) {
+      return { name: v.name, x: v.y, y: -v.x };
+    }
+    return v;
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function renderCanvas() {
+  canvas.innerHTML = '';
+
+  // Grid
+  const gridGroup = document.createElementNS(NS, 'g');
+  for (let i = -11; i <= 11; i++) {
+    // Vertical lines
+    const vx = ORIGIN_X + i * UNIT;
+    if (vx >= 5 && vx <= W - 5) {
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', vx);
+      line.setAttribute('y1', 5);
+      line.setAttribute('x2', vx);
+      line.setAttribute('y2', H - 5);
+      line.setAttribute('stroke', i === 0 ? '#566573' : '#ECEFF1');
+      line.setAttribute('stroke-width', i === 0 ? '1.5' : '1');
+      gridGroup.appendChild(line);
+    }
+    // Horizontal lines
+    const hy = ORIGIN_Y - i * UNIT;
+    if (hy >= 5 && hy <= H - 5) {
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', 5);
+      line.setAttribute('y1', hy);
+      line.setAttribute('x2', W - 5);
+      line.setAttribute('y2', hy);
+      line.setAttribute('stroke', i === 0 ? '#566573' : '#ECEFF1');
+      line.setAttribute('stroke-width', i === 0 ? '1.5' : '1');
+      gridGroup.appendChild(line);
+    }
+  }
+  canvas.appendChild(gridGroup);
+
+  // Axis tick labels
+  for (let i = -10; i <= 10; i += 2) {
+    if (i === 0) continue;
+    const tx = ORIGIN_X + i * UNIT;
+    if (tx >= 15 && tx <= W - 5) {
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', tx);
+      t.setAttribute('y', ORIGIN_Y + 12);
+      t.setAttribute('font-size', '9');
+      t.setAttribute('fill', '#566573');
+      t.setAttribute('text-anchor', 'middle');
+      t.textContent = i;
+      canvas.appendChild(t);
+    }
+    const ty = ORIGIN_Y - i * UNIT;
+    if (ty >= 15 && ty <= H - 5) {
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', ORIGIN_X - 6);
+      t.setAttribute('y', ty + 4);
+      t.setAttribute('font-size', '9');
+      t.setAttribute('fill', '#566573');
+      t.setAttribute('text-anchor', 'end');
+      t.textContent = i;
+      canvas.appendChild(t);
+    }
+  }
+
+  // Compute image
+  const imageVerts = rotate(vertices, currentAngle);
+
+  // Show rotation circles (radius from origin to each vertex) if enabled
+  if (showCircles) {
+    vertices.forEach(v => {
+      const r = Math.sqrt(v.x * v.x + v.y * v.y);
+      if (r > 0.01) {
+        const [cx, cy] = worldToScreen(0, 0);
+        const circle = document.createElementNS(NS, 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', r * UNIT);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', '#B7950B');
+        circle.setAttribute('stroke-width', '1');
+        circle.setAttribute('stroke-dasharray', '3,4');
+        circle.setAttribute('opacity', '0.5');
+        canvas.appendChild(circle);
+      }
+    });
+  }
+
+  // Show rotation arcs from each vertex to its image if enabled
+  if (showArcs && currentAngle !== 0) {
+    vertices.forEach((v, i) => {
+      const img = imageVerts[i];
+      const r = Math.sqrt(v.x * v.x + v.y * v.y);
+      if (r > 0.01) {
+        const [sx1, sy1] = worldToScreen(v.x, v.y);
+        const [sx2, sy2] = worldToScreen(img.x, img.y);
+        const [cx, cy] = worldToScreen(0, 0);
+        // SVG arc: large-arc-flag depends on whether arc > 180°
+        const largeArc = currentAngle > 180 ? 1 : 0;
+        // Sweep flag: 0 for CCW visually (since SVG y is inverted, CCW becomes 0)
+        const sweep = 0;
+        const radius = r * UNIT;
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', `M ${sx1} ${sy1} A ${radius} ${radius} 0 ${largeArc} ${sweep} ${sx2} ${sy2}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#C0392B');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-dasharray', '4,3');
+        path.setAttribute('opacity', '0.7');
+        canvas.appendChild(path);
+        // Arrow head at image end
+        const angle = Math.atan2(sy2 - cy, sx2 - cx);
+        // Tangent direction at image vertex (perpendicular to radius, in CCW direction)
+        const tx = -Math.sin(angle);
+        const ty = Math.cos(angle);
+        // SVG y is flipped, so tangent on screen is rotated
+        const screenTx = -tx;  // CCW visually means this direction
+        const screenTy = ty;
+        const arrowSize = 8;
+        const ax1 = sx2 - screenTx * arrowSize - tx * arrowSize * 0.5;
+        const ay1 = sy2 - screenTy * arrowSize - ty * arrowSize * 0.5;
+        const ax2 = sx2 - screenTx * arrowSize + tx * arrowSize * 0.5;
+        const ay2 = sy2 - screenTy * arrowSize + ty * arrowSize * 0.5;
+        const arrow = document.createElementNS(NS, 'polygon');
+        arrow.setAttribute('points', `${sx2},${sy2} ${ax1},${ay1} ${ax2},${ay2}`);
+        arrow.setAttribute('fill', '#C0392B');
+        arrow.setAttribute('opacity', '0.8');
+        canvas.appendChild(arrow);
+      }
+    });
+  }
+
+  // Draw image triangle (coral, behind)
+  if (vertices.length >= 3) {
+    drawShape(imageVerts, 'rgba(245, 217, 212, 0.7)', '#C0392B', 2.5);
+  } else {
+    // Single point case
+    drawSinglePoint(imageVerts[0], '#C0392B');
+  }
+
+  // Draw original triangle (teal, on top)
+  if (vertices.length >= 3) {
+    drawShape(vertices, 'rgba(213, 232, 226, 0.85)', '#0E6655', 2.5);
+  } else {
+    drawSinglePoint(vertices[0], '#0E6655');
+  }
+
+  // Draw vertices
+  if (vertices.length >= 3) {
+    drawVertices(imageVerts, '#C0392B', 'image');
+    drawVertices(vertices, '#0E6655', 'original');
+  } else {
+    drawVertices(imageVerts, '#C0392B', 'image');
+    drawVertices(vertices, '#0E6655', 'original');
+  }
+
+  // Origin marker (gold star — center of rotation)
+  drawOriginMarker();
+
+  // Legend
+  drawLegend();
+}
+
+function drawShape(verts, fill, stroke, strokeWidth) {
+  const points = verts.map(v => {
+    const [sx, sy] = worldToScreen(v.x, v.y);
+    return `${sx},${sy}`;
+  }).join(' ');
+  const poly = document.createElementNS(NS, 'polygon');
+  poly.setAttribute('points', points);
+  poly.setAttribute('fill', fill);
+  poly.setAttribute('stroke', stroke);
+  poly.setAttribute('stroke-width', strokeWidth);
+  poly.setAttribute('stroke-linejoin', 'round');
+  canvas.appendChild(poly);
+}
+
+function drawSinglePoint(v, color) {
+  // For single-point case, just a placeholder — actual point drawn in drawVertices
+}
+
+function drawVertices(verts, color, type) {
+  verts.forEach(v => {
+    const [sx, sy] = worldToScreen(v.x, v.y);
+    const dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', sx);
+    dot.setAttribute('cy', sy);
+    dot.setAttribute('r', type === 'original' ? '6' : '5');
+    dot.setAttribute('fill', 'white');
+    dot.setAttribute('stroke', color);
+    dot.setAttribute('stroke-width', '2.5');
+    if (type === 'original') {
+      dot.style.cursor = 'grab';
+      dot.addEventListener('mousedown', e => startDrag(e, v));
+      dot.addEventListener('touchstart', e => startDrag(e.touches[0], v), { passive: false });
+    }
+    canvas.appendChild(dot);
+
+    // Label with coordinates
+    const label = document.createElementNS(NS, 'text');
+    const tickName = type === 'image' ? v.name + "'" : v.name;
+    label.setAttribute('x', sx + 9);
+    label.setAttribute('y', sy - 8);
+    label.setAttribute('font-size', '11');
+    label.setAttribute('font-weight', '700');
+    label.setAttribute('fill', color);
+    label.style.pointerEvents = 'none';
+    label.textContent = `${tickName}(${v.x},${v.y})`;
+    canvas.appendChild(label);
+  });
+}
+
+function drawOriginMarker() {
+  // Gold star at origin marking the center of rotation
+  const [cx, cy] = worldToScreen(0, 0);
+  const size = 10;
+  // Draw 5-pointed star
+  const points = [];
+  for (let i = 0; i < 10; i++) {
+    const angle = (i * Math.PI / 5) - Math.PI / 2;
+    const r = i % 2 === 0 ? size : size * 0.5;
+    points.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+  }
+  const star = document.createElementNS(NS, 'polygon');
+  star.setAttribute('points', points.join(' '));
+  star.setAttribute('fill', '#B7950B');
+  star.setAttribute('stroke', '#2C3E50');
+  star.setAttribute('stroke-width', '1.5');
+  star.setAttribute('stroke-linejoin', 'round');
+  canvas.appendChild(star);
+
+  // Label
+  const label = document.createElementNS(NS, 'text');
+  label.setAttribute('x', cx + 14);
+  label.setAttribute('y', cy + 18);
+  label.setAttribute('font-size', '10');
+  label.setAttribute('font-weight', '700');
+  label.setAttribute('fill', '#B7950B');
+  label.textContent = 'center';
+  canvas.appendChild(label);
+}
+
+function drawLegend() {
+  const lg = document.createElementNS(NS, 'g');
+  const legBg = document.createElementNS(NS, 'rect');
+  legBg.setAttribute('x', 10);
+  legBg.setAttribute('y', H - 50);
+  legBg.setAttribute('width', 130);
+  legBg.setAttribute('height', 40);
+  legBg.setAttribute('fill', 'white');
+  legBg.setAttribute('stroke', '#ECEFF1');
+  legBg.setAttribute('rx', '3');
+  lg.appendChild(legBg);
+  const leg1 = document.createElementNS(NS, 'text');
+  leg1.setAttribute('x', 18);
+  leg1.setAttribute('y', H - 32);
+  leg1.setAttribute('font-size', '11');
+  leg1.setAttribute('font-weight', '700');
+  leg1.setAttribute('fill', '#0E6655');
+  leg1.textContent = '■ Original';
+  lg.appendChild(leg1);
+  const leg2 = document.createElementNS(NS, 'text');
+  leg2.setAttribute('x', 18);
+  leg2.setAttribute('y', H - 17);
+  leg2.setAttribute('font-size', '11');
+  leg2.setAttribute('font-weight', '700');
+  leg2.setAttribute('fill', '#C0392B');
+  leg2.textContent = '■ Image';
+  lg.appendChild(leg2);
+  canvas.appendChild(lg);
+}
+
+// ════════════════════════════════════════════════════════
+// DRAGGING
+// ════════════════════════════════════════════════════════
+let dragging = null;
+
+function startDrag(e, v) {
+  e.preventDefault && e.preventDefault();
+  dragging = v;
+}
+
+function onMove(e) {
+  if (!dragging) return;
+  const evt = e.touches ? e.touches[0] : e;
+  const rect = canvas.getBoundingClientRect();
+  const sx = evt.clientX - rect.left;
+  const sy = evt.clientY - rect.top;
+  const [wx, wy] = screenToWorld(sx, sy);
+  dragging.x = Math.round(wx);
+  dragging.y = Math.round(wy);
+  dragging.x = Math.max(-9, Math.min(9, dragging.x));
+  dragging.y = Math.max(-9, Math.min(9, dragging.y));
+  renderAll();
+}
+
+function endDrag() {
+  dragging = null;
+}
+
+document.addEventListener('mousemove', onMove);
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchmove', onMove, { passive: false });
+document.addEventListener('touchend', endDrag);
+
+// ════════════════════════════════════════════════════════
+// UPDATE STATS / RULE / TABLE
+// ════════════════════════════════════════════════════════
+function updateRule() {
+  const ruleCard = document.getElementById('rule-card');
+  const ruleLabel = document.getElementById('rule-label');
+  const ruleFormula = document.getElementById('rule-formula');
+
+  ruleCard.classList.remove('r0', 'r90', 'r180', 'r270');
+  ruleCard.classList.add('r' + currentAngle);
+
+  if (currentAngle === 0) {
+    ruleLabel.textContent = '0° rotation (identity)';
+    ruleFormula.textContent = '(x, y) → (x, y)';
+  } else if (currentAngle === 90) {
+    ruleLabel.textContent = '90° CCW rotation rule';
+    ruleFormula.textContent = '(x, y) → (-y, x)';
+  } else if (currentAngle === 180) {
+    ruleLabel.textContent = '180° rotation rule (the easiest)';
+    ruleFormula.textContent = '(x, y) → (-x, -y)';
+  } else if (currentAngle === 270) {
+    ruleLabel.textContent = '270° CCW rotation rule';
+    ruleFormula.textContent = '(x, y) → (y, -x)';
+  }
+}
+
+function updateVertexTable() {
+  const tbody = document.getElementById('vertex-tbody');
+  tbody.innerHTML = '';
+  const imageVerts = rotate(vertices, currentAngle);
+  vertices.forEach((v, i) => {
+    const img = imageVerts[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="v-name">${v.name} → ${v.name}'</td>
+      <td class="orig">(${v.x}, ${v.y})</td>
+      <td class="arrow">→</td>
+      <td class="new">(${img.x}, ${img.y})</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// MASTER RENDER
+// ════════════════════════════════════════════════════════
+function renderAll() {
+  renderCanvas();
+  updateRule();
+  updateVertexTable();
+}
+
+// ════════════════════════════════════════════════════════
+// PRESETS
+// ════════════════════════════════════════════════════════
+const PRESETS = {
+  curriculum: [
+    { name: 'A', x: 0, y: 0 },
+    { name: 'B', x: 3, y: 0 },
+    { name: 'C', x: 0, y: 2 },
+  ],
+  point35: [
+    { name: 'P', x: 3, y: 5 },
+    { name: 'Q', x: 4, y: 5 },
+    { name: 'R', x: 3, y: 6 },
+  ],
+  square: [
+    { name: 'A', x: 1, y: 1 },
+    { name: 'B', x: 3, y: 1 },
+    { name: 'C', x: 3, y: 3 },
+    { name: 'D', x: 1, y: 3 },
+  ],
+  ABC: [
+    { name: 'A', x: 2, y: 0 },
+    { name: 'B', x: 5, y: 0 },
+    { name: 'C', x: 5, y: 3 },
+  ],
+};
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = PRESETS[btn.dataset.preset];
+    vertices = preset.map(v => ({ ...v }));
+    renderAll();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// ROTATION BUTTONS
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.rotate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentAngle = parseInt(btn.dataset.angle);
+    document.querySelectorAll('.rotate-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAll();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// TOGGLES
+// ════════════════════════════════════════════════════════
+document.getElementById('toggle-arcs').addEventListener('click', function() {
+  showArcs = !showArcs;
+  this.classList.toggle('on');
+  renderAll();
+});
+document.getElementById('toggle-circles').addEventListener('click', function() {
+  showCircles = !showCircles;
+  this.classList.toggle('on');
+  renderAll();
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+renderAll();
+</script>
+
+</body>
+</html>

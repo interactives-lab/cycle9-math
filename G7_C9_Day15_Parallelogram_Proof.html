@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 15 — Parallelogram Proof</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .slider-row {
+    background: var(--offwhite);
+    padding: 14px 16px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .slider-row label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+    margin-bottom: 8px;
+  }
+  .slider-row .value {
+    display: inline-block;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--purp);
+    margin-right: 12px;
+    min-width: 60px;
+  }
+  .slider-row input[type="range"] {
+    width: calc(100% - 80px);
+    vertical-align: middle;
+  }
+  .preset-btns {
+    display: flex; gap: 6px; margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .preset-btn {
+    background: var(--light-purp);
+    border: 1px solid var(--purp);
+    padding: 5px 10px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--purp); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--purp); color: white; }
+  .preset-btn.active { background: var(--purp); color: white; }
+
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 700px) {
+    .canvas-grid { grid-template-columns: 1fr; }
+  }
+  .canvas-box {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+  }
+  .canvas-box .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+    margin-bottom: 6px;
+  }
+  .canvas-box svg { display: block; margin: 0 auto; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+  .stat-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 10px 12px;
+    border-left: 4px solid var(--grey);
+    text-align: left;
+  }
+  .stat-card.base { border-left-color: var(--purp); }
+  .stat-card.height { border-left-color: var(--gold); }
+  .stat-card.area { border-left-color: var(--teal); }
+  .stat-card .name {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .stat-card .val {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+  .stat-card.base .val { color: var(--purp); }
+  .stat-card.height .val { color: var(--gold); }
+  .stat-card.area .val { color: var(--teal); }
+  .stat-card .ideal {
+    font-size: 10px;
+    font-style: italic;
+    color: var(--grey);
+    margin-top: 2px;
+  }
+
+  .conclusion {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: var(--slate);
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .conclusion .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .conclusion .formula {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #F4ECC6;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Parallelogram Proof of A = πr²</h1>
+  <span class="badge">CYCLE 9 • DAY 15 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Cut a Circle. Rearrange. Watch the Parallelogram Emerge.</h2>
+    <p class="instruction">Use the slider to change the number of sectors. As N grows, the rearranged shape approaches a true parallelogram with base = πr and height = r. This is the visual proof that A = πr².</p>
+
+    <div class="slider-row">
+      <label>Number of sectors (N)</label>
+      <span class="value" id="n-display">16</span>
+      <input type="range" id="n-slider" min="4" max="64" step="1" value="16">
+      <div class="preset-btns">
+        <button class="preset-btn" data-n="4">N = 4</button>
+        <button class="preset-btn" data-n="8">N = 8</button>
+        <button class="preset-btn active" data-n="16">N = 16</button>
+        <button class="preset-btn" data-n="32">N = 32</button>
+        <button class="preset-btn" data-n="64">N = 64</button>
+      </div>
+    </div>
+
+    <div class="canvas-grid">
+      <div class="canvas-box">
+        <div class="label">Original Circle (divided into N sectors)</div>
+        <svg id="circle-svg" width="320" height="260" viewBox="0 0 320 260"></svg>
+      </div>
+      <div class="canvas-box">
+        <div class="label">Rearranged (approaches a parallelogram)</div>
+        <svg id="parallelogram-svg" width="380" height="260" viewBox="0 0 380 260"></svg>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card base">
+        <div class="name">Base of parallelogram</div>
+        <div class="val" id="base-val">98.0 units</div>
+        <div class="ideal">Ideal: πr ≈ 314.2</div>
+      </div>
+      <div class="stat-card height">
+        <div class="name">Height of parallelogram</div>
+        <div class="val" id="height-val">98.1 units</div>
+        <div class="ideal">Ideal: r = 100</div>
+      </div>
+      <div class="stat-card area">
+        <div class="name">Area = base × height</div>
+        <div class="val" id="area-val">9618 units²</div>
+        <div class="ideal">Ideal: πr² ≈ 31,416</div>
+      </div>
+    </div>
+
+    <div class="conclusion">
+      <div class="label">In the limit, as N → ∞</div>
+      <div class="formula">A  =  base × height  =  πr × r  =  π × r²</div>
+    </div>
+
+    <div class="insight-box">
+      <strong>Why the approximation improves with larger N:</strong> with 4 sectors, each piece is a big wedge and the rearranged shape is chunky and wavy. With 16 sectors, the shape starts to look like a parallelogram. With 64 sectors, the shape is almost perfectly smooth — the top and bottom edges approach straight lines of length πr, and the sides approach vertical lines of length r. In the limit (infinitely many sectors), the shape IS a parallelogram. That's the proof.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let N = 16;
+const r = 100;  // radius in "units" (arbitrary — we'll scale to pixels)
+const NS = 'http://www.w3.org/2000/svg';
+
+// Canvas dimensions
+const CIRCLE_W = 320, CIRCLE_H = 260;
+const PARA_W = 380, PARA_H = 260;
+
+// Colors (match slide family colors)
+const COLORS_UP = '#D5E8E2';   // teal light
+const COLORS_DN = '#E8DAEF';   // purple light
+const STROKE_UP = '#0E6655';   // teal
+const STROKE_DN = '#6C3483';   // purple
+
+// ════════════════════════════════════════════════════════
+// RENDER — the original circle with N sectors
+// ════════════════════════════════════════════════════════
+function renderCircle() {
+  const svg = document.getElementById('circle-svg');
+  svg.innerHTML = '';
+
+  // Scale radius to fit canvas (leave margin)
+  const pxR = Math.min(110, 110);  // fixed 110px radius
+  const cx = CIRCLE_W / 2;
+  const cy = CIRCLE_H / 2;
+
+  // Draw each sector as a filled path, alternating teal/purple
+  for (let i = 0; i < N; i++) {
+    const angle1 = (i / N) * 2 * Math.PI - Math.PI / 2;
+    const angle2 = ((i + 1) / N) * 2 * Math.PI - Math.PI / 2;
+
+    const x1 = cx + pxR * Math.cos(angle1);
+    const y1 = cy + pxR * Math.sin(angle1);
+    const x2 = cx + pxR * Math.cos(angle2);
+    const y2 = cy + pxR * Math.sin(angle2);
+
+    // For a true pie slice, use an A-path (arc)
+    const largeArc = 0;  // always small arc since N >= 4
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d',
+      `M ${cx} ${cy} L ${x1} ${y1} A ${pxR} ${pxR} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+    const isUp = (i % 2 === 0);
+    path.setAttribute('fill', isUp ? COLORS_UP : COLORS_DN);
+    path.setAttribute('stroke', isUp ? STROKE_UP : STROKE_DN);
+    path.setAttribute('stroke-width', '1');
+    svg.appendChild(path);
+  }
+
+  // Centre dot
+  const centre = document.createElementNS(NS, 'circle');
+  centre.setAttribute('cx', cx);
+  centre.setAttribute('cy', cy);
+  centre.setAttribute('r', 3);
+  centre.setAttribute('fill', '#2C3E50');
+  svg.appendChild(centre);
+
+  // Radius line
+  const rline = document.createElementNS(NS, 'line');
+  rline.setAttribute('x1', cx);
+  rline.setAttribute('y1', cy);
+  rline.setAttribute('x2', cx + pxR);
+  rline.setAttribute('y2', cy);
+  rline.setAttribute('stroke', '#2C3E50');
+  rline.setAttribute('stroke-width', 2);
+  svg.appendChild(rline);
+
+  // Radius label
+  const rlabel = document.createElementNS(NS, 'text');
+  rlabel.setAttribute('x', cx + pxR / 2);
+  rlabel.setAttribute('y', cy - 6);
+  rlabel.setAttribute('font-size', '12');
+  rlabel.setAttribute('font-weight', '700');
+  rlabel.setAttribute('fill', '#2C3E50');
+  rlabel.setAttribute('text-anchor', 'middle');
+  rlabel.textContent = 'r';
+  svg.appendChild(rlabel);
+
+  // N label at top
+  const nlabel = document.createElementNS(NS, 'text');
+  nlabel.setAttribute('x', cx);
+  nlabel.setAttribute('y', 20);
+  nlabel.setAttribute('font-size', '13');
+  nlabel.setAttribute('font-weight', '700');
+  nlabel.setAttribute('fill', '#6C3483');
+  nlabel.setAttribute('text-anchor', 'middle');
+  nlabel.textContent = `${N} sectors`;
+  svg.appendChild(nlabel);
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER — the rearranged parallelogram
+// ════════════════════════════════════════════════════════
+function renderParallelogram() {
+  const svg = document.getElementById('parallelogram-svg');
+  svg.innerHTML = '';
+
+  // Rearrange N sectors: N/2 pointing up, N/2 pointing down, alternating
+  // Each sector is a "triangle" shape (approximately)
+  // Sector angle: 2π/N
+  // Chord at base: 2r sin(π/N)
+  // Sector height (apex to chord): r cos(π/N)
+  const sectorAngleHalf = Math.PI / N;
+  const chord = 2 * r * Math.sin(sectorAngleHalf);
+  const sectorHeight = r * Math.cos(sectorAngleHalf);
+
+  // Visual scaling — fit into canvas
+  // N/2 chord widths should fit horizontally with margin
+  const numPairs = N / 2;
+  // Total width = N * (chord/2) for the zig-zag arrangement...
+  // Actually: N sectors alternating occupy a horizontal span of
+  // approximately (N/2) * chord for each row, staggered.
+  // The combined "parallelogram" has width = (N/2) * chord (half the
+  // circumference when N large).
+  const baseWidth = (N / 2) * chord;
+  const totalHeight = 2 * sectorHeight;  // height ≈ 2r for large N
+
+  // Scale to fit canvas
+  const availableW = PARA_W - 60;
+  const availableH = PARA_H - 80;
+  const scaleX = availableW / baseWidth;
+  const scaleY = availableH / totalHeight;
+  const scale = Math.min(scaleX, scaleY, 1.5);
+
+  const scaledChord = chord * scale;
+  const scaledHeight = sectorHeight * scale;
+
+  // Starting position (centered)
+  const startX = (PARA_W - N * (scaledChord / 2)) / 2 + scaledChord / 2;
+  const midY = PARA_H / 2 + 10;  // shift down a bit for label room
+
+  // For each sector, draw it as a triangle
+  // Even sectors (0, 2, 4, ...) point DOWN (apex at midY + scaledHeight, base on top at midY)
+  // Odd sectors (1, 3, 5, ...) point UP (apex at midY - scaledHeight, base on bottom at midY)
+  // Actually, the classic rearrangement is: first sector's base on top, apex down;
+  //   second sector's apex up, base down; etc. They interlock.
+  // Let's use the interlocking layout: each sector's triangle tip at the midline boundary.
+  //
+  // Layout: each sector is a triangle with
+  //   - one tall side (the radius, length r) on either left or right
+  //   - the base (the chord, length 2r sin(π/N)) on top or bottom
+  //
+  // When N is large, the triangles are very thin and the whole row looks like a
+  // thin parallelogram.
+  //
+  // Simpler layout for visualization: draw N triangles in a row.
+  //   For even i: triangle with apex at (x_i, midY - scaledHeight), base corners at
+  //              (x_i - scaledChord/2, midY) and (x_i + scaledChord/2, midY).
+  //   For odd i:  triangle with apex at (x_i, midY + scaledHeight), base corners at
+  //              (x_i - scaledChord/2, midY) and (x_i + scaledChord/2, midY).
+  // But this doesn't interlock them — they'd overlap.
+  //
+  // Correct interlocking: each triangle shares an edge with its neighbour.
+  //   Think of it as a zig-zag: triangle 0 (up) shares its right edge with triangle 1 (down),
+  //   which shares its right edge with triangle 2 (up), etc.
+  // The base of the parallelogram then consists of alternating chord-halves.
+  //
+  // For our visual, use simple layout: tile triangles alternating up/down, each taking width chord/2.
+  // The whole "parallelogram" spans from x=0 to x=N*chord/2 horizontally.
+
+  const sectorW = scaledChord / 2;  // each sector triangle has horizontal extent chord/2 in the zig-zag
+  const totalParaWidth = N * sectorW;
+  const leftStart = (PARA_W - totalParaWidth) / 2;
+
+  // Draw alternating triangles
+  // Triangle i (even i, "up"): vertices at
+  //   (leftStart + i*sectorW, midY + scaledHeight/2)        ← bottom-left
+  //   (leftStart + (i+1)*sectorW, midY - scaledHeight/2)    ← top-right
+  //   (leftStart + i*sectorW, midY - scaledHeight/2)        ← top-left
+  //   Actually this gives a triangle that's half the "strip"
+  // Triangle i (odd i, "down"): vertices at
+  //   (leftStart + i*sectorW, midY - scaledHeight/2)        ← top-left
+  //   (leftStart + (i+1)*sectorW, midY + scaledHeight/2)    ← bottom-right
+  //   (leftStart + (i+1)*sectorW, midY - scaledHeight/2)    ← top-right
+  // These two together form a full rectangle of width sectorW*2.
+  //
+  // WAIT — that's not actually how the parallelogram proof works visually.
+  // The parallelogram is made by laying N sectors edge-to-edge in a row, alternating
+  // orientation (up/down). Each sector IS a full sector triangle (apex at centre,
+  // base on outer arc). When laid out, N/2 sectors point up and N/2 point down, 
+  // forming a shape that looks like a bumpy rectangle.
+  //
+  // Simpler correct version: each sector occupies horizontal width = chord, not chord/2.
+  // N sectors in total, but they're in TWO ROWS of N/2 each. No wait — they're
+  // in ONE row alternating up/down.
+  //
+  // OK let me just implement the visually clear version:
+  // Place N triangles in a single row. Each has base = chord (horizontal) and 
+  // height = sectorHeight (vertical). Even sectors have apex UP (at midY - sectorHeight),
+  // odd sectors have apex DOWN (at midY + sectorHeight). They're placed with their
+  // bases alternating on the top/bottom midline.
+  //
+  // Hmm, in the real parallelogram proof, each sector is a long thin wedge, and when
+  // alternated, they fit together like puzzle pieces. The TOP of the parallelogram is
+  // formed by the N/2 sectors pointing up (their outer arcs), and the BOTTOM is formed
+  // by the other N/2 sectors pointing down (their outer arcs). The total base length
+  // is half the circumference (πr), and the total height is the radius r.
+  //
+  // For our visual, I'll render each sector as a triangle with its long side (the 
+  // radius) slanted, alternating direction. This gives the correct visual.
+
+  // Rendering approach: for each i in 0..N-1, draw a triangle.
+  //   Sector i has its tip at (leftStart + i*(chord/2), midY +/- sectorHeight/2)
+  //   and its base opposite. The chord/2 spacing creates the zig-zag.
+  // Actually, let me just render it plainly:
+  //   For each sector i, the triangle occupies [i*chord/2, i*chord/2 + chord] × [top..bottom]
+  //   where "top" and "bottom" alternate which is the base and which is the apex.
+
+  for (let i = 0; i < N; i++) {
+    const xLeft = leftStart + i * sectorW;
+    const xRight = xLeft + scaledChord;  // chord-wide base
+    const isUp = (i % 2 === 0);
+    // "up" sector: apex at top, base at bottom
+    //   wait — "pointing up" means apex points up, base is at the bottom
+    //   So apex at (xLeft + sectorW/2, midY - scaledHeight/2)
+    //   base at (xLeft - sectorW/2, midY + scaledHeight/2) and (xRight - sectorW/2, midY + scaledHeight/2)
+    //   ...this is getting confusing. Let me just do simple adjacent triangles.
+
+    // Simplest: triangle with:
+    //   Corner A: (xLeft, midY + (isUp ? scaledHeight/2 : -scaledHeight/2))
+    //   Corner B: (xLeft + scaledChord, midY + (isUp ? scaledHeight/2 : -scaledHeight/2))  (base)
+    //   Corner C: (xLeft + scaledChord/2, midY + (isUp ? -scaledHeight/2 : scaledHeight/2))  (apex)
+
+    const yBase = isUp ? (midY + scaledHeight / 2) : (midY - scaledHeight / 2);
+    const yApex = isUp ? (midY - scaledHeight / 2) : (midY + scaledHeight / 2);
+    const xA = xLeft;
+    const xB = xLeft + scaledChord;
+    const xC = xLeft + scaledChord / 2;
+
+    const tri = document.createElementNS(NS, 'polygon');
+    tri.setAttribute('points', `${xA},${yBase} ${xB},${yBase} ${xC},${yApex}`);
+    tri.setAttribute('fill', isUp ? COLORS_UP : COLORS_DN);
+    tri.setAttribute('stroke', isUp ? STROKE_UP : STROKE_DN);
+    tri.setAttribute('stroke-width', '1');
+    svg.appendChild(tri);
+  }
+
+  // Draw the "ideal" parallelogram outline (faint) for reference
+  // Base = half circumference = πr (in pixels, πr * scale)
+  const idealBase = Math.PI * r * scale;
+  const idealHeight = r * scale;
+  // Center this outline at midY
+  const idealLeft = (PARA_W - idealBase) / 2;
+  const idealTop = midY - idealHeight / 2;
+
+  const outline = document.createElementNS(NS, 'rect');
+  outline.setAttribute('x', idealLeft);
+  outline.setAttribute('y', idealTop);
+  outline.setAttribute('width', idealBase);
+  outline.setAttribute('height', idealHeight);
+  outline.setAttribute('fill', 'none');
+  outline.setAttribute('stroke', '#C0392B');
+  outline.setAttribute('stroke-width', '2');
+  outline.setAttribute('stroke-dasharray', '4,3');
+  svg.appendChild(outline);
+
+  // Ideal parallelogram labels
+  const baseLabel = document.createElementNS(NS, 'text');
+  baseLabel.setAttribute('x', PARA_W / 2);
+  baseLabel.setAttribute('y', idealTop + idealHeight + 18);
+  baseLabel.setAttribute('font-size', '11');
+  baseLabel.setAttribute('font-weight', '700');
+  baseLabel.setAttribute('fill', '#C0392B');
+  baseLabel.setAttribute('text-anchor', 'middle');
+  baseLabel.textContent = 'ideal base = πr';
+  svg.appendChild(baseLabel);
+
+  const heightLabel = document.createElementNS(NS, 'text');
+  heightLabel.setAttribute('x', idealLeft + idealBase + 5);
+  heightLabel.setAttribute('y', midY);
+  heightLabel.setAttribute('font-size', '10');
+  heightLabel.setAttribute('font-weight', '700');
+  heightLabel.setAttribute('fill', '#C0392B');
+  heightLabel.textContent = 'r';
+  svg.appendChild(heightLabel);
+
+  // Title at top
+  const titleLabel = document.createElementNS(NS, 'text');
+  titleLabel.setAttribute('x', PARA_W / 2);
+  titleLabel.setAttribute('y', 20);
+  titleLabel.setAttribute('font-size', '13');
+  titleLabel.setAttribute('font-weight', '700');
+  titleLabel.setAttribute('fill', '#2C3E50');
+  titleLabel.setAttribute('text-anchor', 'middle');
+  titleLabel.textContent = `${N} sectors rearranged`;
+  svg.appendChild(titleLabel);
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE — compute and display stats
+// ════════════════════════════════════════════════════════
+function update() {
+  document.getElementById('n-display').textContent = N;
+
+  // Compute the actual parallelogram dimensions for this N
+  const chord = 2 * r * Math.sin(Math.PI / N);
+  const sectorHeight = r * Math.cos(Math.PI / N);
+
+  // Base of the approximate parallelogram = (N/2) * chord
+  const actualBase = (N / 2) * chord;
+  // Height of the approximate parallelogram ≈ sectorHeight × 2 (since sectors alternate,
+  // the total vertical span is approximately 2 × sectorHeight, but the "effective" height
+  // of the parallelogram is just sectorHeight when we look at the base-to-apex distance).
+  // Actually, in the classic proof, height = r (not 2r). This is because each sector's
+  // tall side IS the radius, and the parallelogram's height equals that radius.
+  // For approximation: the vertical extent is sectorHeight (one row of triangles point
+  // up, one row points down; their TIPS meet at the boundary, so the total vertical
+  // span of the interlocking shape is just sectorHeight, not 2 × sectorHeight).
+  //
+  // Wait — let me reconsider. In the real paper proof with 16 sectors:
+  // - 8 sectors point up, apex at top
+  // - 8 sectors point down, apex at bottom (actually, alternating)
+  // - The height of the whole shape = radius of the original circle
+  // That's because the "tall side" of each sector IS the radius.
+  //
+  // For the visual approximation: the height depends on exactly how the triangles
+  // are laid out. For our SVG, we're using sectorHeight as the height (the apex-to-base
+  // distance of each triangle), which is r × cos(π/N). As N → ∞, this approaches r.
+  //
+  // So the approximate parallelogram has:
+  //   base ≈ (N/2) × chord = (N/2) × 2r sin(π/N) = Nr sin(π/N)
+  //   height ≈ r cos(π/N)
+  //   area ≈ Nr sin(π/N) × r cos(π/N) = Nr² sin(π/N) cos(π/N) = (Nr²/2) × sin(2π/N)
+  //
+  // As N → ∞:
+  //   base → πr (since N sin(π/N) → π)
+  //   height → r (since cos(π/N) → 1)
+  //   area → πr²  ✓
+  const actualHeight = sectorHeight;
+  const actualArea = actualBase * actualHeight;
+  const idealArea = Math.PI * r * r;
+
+  document.getElementById('base-val').innerHTML =
+    `${actualBase.toFixed(1)} units`;
+  document.getElementById('height-val').innerHTML =
+    `${actualHeight.toFixed(1)} units`;
+  document.getElementById('area-val').innerHTML =
+    `${actualArea.toFixed(0)} units²`;
+
+  renderCircle();
+  renderParallelogram();
+}
+
+// ════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ════════════════════════════════════════════════════════
+document.getElementById('n-slider').addEventListener('input', (e) => {
+  N = parseInt(e.target.value);
+  // Update active preset button
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.n) === N);
+  });
+  update();
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    N = parseInt(btn.dataset.n);
+    document.getElementById('n-slider').value = N;
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+    });
+    update();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

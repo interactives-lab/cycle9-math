@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 10 — Capacity Calculator</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+    --water: #2E86C1;
+    --water-light: #5DADE2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .mode-toggle {
+    display: flex; gap: 8px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 6px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .mode-btn {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 10px 16px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    color: var(--slate); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { background: var(--light-grey); }
+  .mode-btn.active {
+    background: var(--teal); color: white; border-color: var(--teal);
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  /* WORKFLOW MODE */
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) {
+    .input-grid { grid-template-columns: 1fr; }
+  }
+  .input-group {
+    background: var(--offwhite);
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--grey);
+    border-radius: 3px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 6px 11px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .workflow-steps {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .step-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+  }
+  .step-card.s1 { border-left-color: var(--teal); }
+  .step-card.s2 { border-left-color: var(--purp); }
+  .step-card.s3 { border-left-color: var(--gold); }
+  .step-card.s4 { border-left-color: var(--green); }
+  .step-card .step-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+  .step-card.s1 .step-label { color: var(--teal); }
+  .step-card.s2 .step-label { color: var(--purp); }
+  .step-card.s3 .step-label { color: var(--gold); }
+  .step-card.s4 .step-label { color: var(--green); }
+  .step-card .step-formula {
+    font-size: 12px;
+    color: var(--grey);
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .step-card .step-result {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-top: 6px;
+  }
+
+  /* TANK MODE */
+  .tank-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .tank-area svg { display: block; margin: 0 auto; }
+
+  .tank-controls {
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tank-btn {
+    background: var(--teal); color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    font-family: inherit;
+  }
+  .tank-btn:hover { background: #0a4f3f; }
+  .tank-btn:disabled { background: var(--grey); cursor: not-allowed; }
+  .tank-btn.reset {
+    background: var(--coral);
+  }
+  .tank-btn.reset:hover { background: #952c20; }
+
+  .counter {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--slate);
+    background: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 2px solid var(--gold);
+    min-width: 200px;
+    text-align: center;
+  }
+  .counter .num { color: var(--coral); }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Capacity Calculator</h1>
+  <span class="badge">CYCLE 9 • DAY 10 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="workflow">Workflow Solver</button>
+    <button class="mode-btn" data-mode="tank">Visual Tank — 2000 Bottles</button>
+  </div>
+
+  <!-- WORKFLOW MODE -->
+  <div id="workflow-panel">
+    <div class="panel">
+      <h2>Enter Your Problem</h2>
+      <p class="instruction">Type the dimensions of your container and the size of the individual bottle. The four-step workflow runs live as you type.</p>
+
+      <div class="input-grid">
+        <div class="input-group">
+          <label>Length (cm)</label>
+          <input type="number" id="length-input" value="100" min="1" max="10000">
+        </div>
+        <div class="input-group">
+          <label>Width (cm)</label>
+          <input type="number" id="width-input" value="100" min="1" max="10000">
+        </div>
+        <div class="input-group">
+          <label>Height (cm)</label>
+          <input type="number" id="height-input" value="100" min="1" max="10000">
+        </div>
+        <div class="input-group">
+          <label>Bottle capacity (mL)</label>
+          <input type="number" id="bottle-input" value="500" min="1" max="100000">
+        </div>
+      </div>
+
+      <div class="preset-btns" id="presets">
+        <button class="preset-btn" data-l="100" data-w="100" data-h="100" data-b="500">Curriculum Tank (S1)</button>
+        <button class="preset-btn" data-l="50" data-w="30" data-h="40" data-b="500">Fish Tank: 50×30×40</button>
+        <button class="preset-btn" data-l="10" data-w="10" data-h="10" data-b="500">10×10×10 cube (1 L)</button>
+        <button class="preset-btn" data-l="200" data-w="200" data-h="200" data-b="500">DOUBLED tank (2x)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>The Four-Step Workflow</h2>
+      <p class="instruction">Watch each step execute. The result of each step feeds into the next.</p>
+
+      <div class="workflow-steps">
+        <div class="step-card s1">
+          <div class="step-label">Step 1 — Compute Volume</div>
+          <div class="step-formula" id="formula-1">V = l × w × h = 100 × 100 × 100</div>
+          <div class="step-result" id="result-1">1,000,000 cm³</div>
+        </div>
+        <div class="step-card s2">
+          <div class="step-label">Step 2 — Convert to Capacity</div>
+          <div class="step-formula" id="formula-2">1 cm³ = 1 mL → same number</div>
+          <div class="step-result" id="result-2">1,000,000 mL  =  1,000 L</div>
+        </div>
+        <div class="step-card s3">
+          <div class="step-label">Step 3 — Divide by Bottle Capacity</div>
+          <div class="step-formula" id="formula-3">1,000,000 mL ÷ 500 mL/bottle</div>
+          <div class="step-result" id="result-3">2,000 bottles</div>
+        </div>
+        <div class="step-card s4">
+          <div class="step-label">Step 4 — Sanity Check</div>
+          <div class="step-formula" id="formula-4">Is this reasonable for the container size?</div>
+          <div class="step-result" id="result-4">A 1 m³ tank fills 2000 standard bottles ✓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TANK MODE -->
+  <div id="tank-panel" class="hidden">
+    <div class="panel">
+      <h2>The Curriculum Water Tank — 2000 Bottles</h2>
+      <p class="instruction">Watch the 100 cm × 100 cm × 100 cm tank empty as 2000 standard 500 mL bottles fill up. Click "Start filling" to begin. Each bottle that fills is one drained from the tank.</p>
+
+      <div class="tank-area">
+        <svg id="tank-svg" width="700" height="450" viewBox="0 0 700 450"></svg>
+      </div>
+
+      <div class="tank-controls">
+        <div class="counter" id="counter">Bottles filled: <span class="num" id="bottle-num">0</span> / 2000</div>
+        <button class="tank-btn" id="start-btn">Start filling</button>
+        <button class="tank-btn reset" id="reset-btn">Reset</button>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <strong>Visceral demonstration:</strong> the curriculum tank holds 1,000,000 mL = 1000 L. Divided into 500 mL bottles, that's 2000 bottles. Two THOUSAND bottles from a single cubic metre. The metric chain is bigger than your intuition tells you it is.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// MODE TOGGLE
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.mode;
+    document.getElementById('workflow-panel').classList.toggle('hidden', mode !== 'workflow');
+    document.getElementById('tank-panel').classList.toggle('hidden', mode !== 'tank');
+    if (mode === 'tank') {
+      initTankSVG();
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// WORKFLOW MODE — math (Python-verified)
+// ════════════════════════════════════════════════════════
+function formatNum(n) {
+  return n.toLocaleString();
+}
+
+function computeWorkflow() {
+  const l = parseFloat(document.getElementById('length-input').value) || 0;
+  const w = parseFloat(document.getElementById('width-input').value) || 0;
+  const h = parseFloat(document.getElementById('height-input').value) || 0;
+  const b = parseFloat(document.getElementById('bottle-input').value) || 1;
+
+  // Step 1: Volume
+  const v_cm3 = l * w * h;
+  document.getElementById('formula-1').textContent =
+    `V = l × w × h = ${l} × ${w} × ${h}`;
+  document.getElementById('result-1').textContent =
+    `${formatNum(v_cm3)} cm³`;
+
+  // Step 2: Convert to capacity
+  const v_ml = v_cm3;  // 1 cm³ = 1 mL
+  const v_l = v_cm3 / 1000;
+  document.getElementById('formula-2').textContent =
+    `1 cm³ = 1 mL → same number (then ÷ 1000 for L)`;
+  document.getElementById('result-2').textContent =
+    `${formatNum(v_ml)} mL  =  ${formatNum(v_l)} L`;
+
+  // Step 3: Divide
+  const bottles = Math.floor(v_ml / b);
+  document.getElementById('formula-3').textContent =
+    `${formatNum(v_ml)} mL ÷ ${b} mL/bottle`;
+  document.getElementById('result-3').textContent =
+    `${formatNum(bottles)} bottles`;
+
+  // Step 4: Sanity check
+  let sanity;
+  if (v_l < 0.5) {
+    sanity = `Tiny container — ${formatNum(bottles)} bottles is right for ${v_l.toFixed(2)} L.`;
+  } else if (v_l < 5) {
+    sanity = `Small container (~${v_l.toFixed(1)} L) — like a soda bottle.`;
+  } else if (v_l < 100) {
+    sanity = `Medium container (${v_l.toFixed(0)} L) — fish-tank-sized. Reasonable ✓`;
+  } else if (v_l < 10000) {
+    sanity = `Large container (${formatNum(Math.round(v_l))} L) — water tank or pool. Reasonable ✓`;
+  } else {
+    sanity = `HUGE container (${formatNum(Math.round(v_l))} L) — industrial scale.`;
+  }
+  document.getElementById('formula-4').textContent =
+    'Is this reasonable for the container size?';
+  document.getElementById('result-4').textContent = sanity;
+}
+
+['length-input', 'width-input', 'height-input', 'bottle-input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', computeWorkflow);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('length-input').value = btn.dataset.l;
+    document.getElementById('width-input').value = btn.dataset.w;
+    document.getElementById('height-input').value = btn.dataset.h;
+    document.getElementById('bottle-input').value = btn.dataset.b;
+    computeWorkflow();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// TANK MODE — visual fill
+// ════════════════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+let tankSVG = null;
+let bottlesGrid = [];  // Array of <rect> elements
+let tankWaterRect = null;
+let bottleCount = 0;
+const TOTAL_BOTTLES = 2000;
+const COLS = 50;
+const ROWS = 40;
+let fillAnimation = null;
+
+function initTankSVG() {
+  tankSVG = document.getElementById('tank-svg');
+  tankSVG.innerHTML = '';
+  bottlesGrid = [];
+  bottleCount = 0;
+  if (fillAnimation) {
+    clearInterval(fillAnimation);
+    fillAnimation = null;
+  }
+  document.getElementById('start-btn').textContent = 'Start filling';
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('bottle-num').textContent = '0';
+
+  // LEFT side: the tank (cube)
+  const tankX = 30;
+  const tankY = 80;
+  const tankW = 200;
+  const tankH = 240;
+
+  // Tank label
+  const tankLabel = document.createElementNS(NS, 'text');
+  tankLabel.setAttribute('x', tankX + tankW / 2);
+  tankLabel.setAttribute('y', tankY - 40);
+  tankLabel.setAttribute('font-size', '14');
+  tankLabel.setAttribute('font-weight', '700');
+  tankLabel.setAttribute('fill', '#0E6655');
+  tankLabel.setAttribute('text-anchor', 'middle');
+  tankLabel.textContent = 'Curriculum Tank';
+  tankSVG.appendChild(tankLabel);
+
+  const tankSubLabel = document.createElementNS(NS, 'text');
+  tankSubLabel.setAttribute('x', tankX + tankW / 2);
+  tankSubLabel.setAttribute('y', tankY - 22);
+  tankSubLabel.setAttribute('font-size', '11');
+  tankSubLabel.setAttribute('fill', '#566573');
+  tankSubLabel.setAttribute('text-anchor', 'middle');
+  tankSubLabel.textContent = '100 cm × 100 cm × 100 cm = 1,000,000 mL';
+  tankSVG.appendChild(tankSubLabel);
+
+  // Tank outline (3D-ish look)
+  const offset = 22;
+  // Back face
+  const backFace = document.createElementNS(NS, 'polygon');
+  backFace.setAttribute('points',
+    `${tankX + offset},${tankY} ${tankX + tankW + offset},${tankY} ${tankX + tankW + offset},${tankY + tankH} ${tankX + offset},${tankY + tankH}`);
+  backFace.setAttribute('fill', '#D5E8E2');
+  backFace.setAttribute('stroke', '#0E6655');
+  backFace.setAttribute('stroke-width', '2');
+  tankSVG.appendChild(backFace);
+
+  // Top face
+  const topFace = document.createElementNS(NS, 'polygon');
+  topFace.setAttribute('points',
+    `${tankX},${tankY} ${tankX + offset},${tankY - offset/1.5}
+     ${tankX + tankW + offset},${tankY - offset/1.5} ${tankX + tankW},${tankY}`);
+  topFace.setAttribute('fill', '#A8D4C3');
+  topFace.setAttribute('stroke', '#0E6655');
+  topFace.setAttribute('stroke-width', '2');
+  tankSVG.appendChild(topFace);
+
+  // Right side
+  const rightFace = document.createElementNS(NS, 'polygon');
+  rightFace.setAttribute('points',
+    `${tankX + tankW},${tankY} ${tankX + tankW + offset},${tankY - offset/1.5}
+     ${tankX + tankW + offset},${tankY + tankH - offset/1.5} ${tankX + tankW},${tankY + tankH}`);
+  rightFace.setAttribute('fill', '#7FBFA8');
+  rightFace.setAttribute('stroke', '#0E6655');
+  rightFace.setAttribute('stroke-width', '2');
+  tankSVG.appendChild(rightFace);
+
+  // Front face (transparent — water visible through it)
+  const frontFace = document.createElementNS(NS, 'rect');
+  frontFace.setAttribute('x', tankX);
+  frontFace.setAttribute('y', tankY);
+  frontFace.setAttribute('width', tankW);
+  frontFace.setAttribute('height', tankH);
+  frontFace.setAttribute('fill', 'rgba(213, 232, 226, 0.3)');
+  frontFace.setAttribute('stroke', '#0E6655');
+  frontFace.setAttribute('stroke-width', '3');
+  tankSVG.appendChild(frontFace);
+
+  // Water inside tank (starts full, drains as bottles fill)
+  tankWaterRect = document.createElementNS(NS, 'rect');
+  tankWaterRect.setAttribute('x', tankX + 4);
+  tankWaterRect.setAttribute('y', tankY + 4);
+  tankWaterRect.setAttribute('width', tankW - 8);
+  tankWaterRect.setAttribute('height', tankH - 8);
+  tankWaterRect.setAttribute('fill', '#2E86C1');
+  tankWaterRect.setAttribute('opacity', '0.65');
+  tankSVG.appendChild(tankWaterRect);
+
+  // Front face outline (drawn on top so the edges show)
+  const frontOutline = document.createElementNS(NS, 'rect');
+  frontOutline.setAttribute('x', tankX);
+  frontOutline.setAttribute('y', tankY);
+  frontOutline.setAttribute('width', tankW);
+  frontOutline.setAttribute('height', tankH);
+  frontOutline.setAttribute('fill', 'none');
+  frontOutline.setAttribute('stroke', '#0E6655');
+  frontOutline.setAttribute('stroke-width', '3');
+  tankSVG.appendChild(frontOutline);
+
+  // RIGHT side: the bottles grid (50 cols × 40 rows = 2000 bottles)
+  const gridX = 280;
+  const gridY = 50;
+  const gridW = 400;
+  const gridH = 360;
+
+  const gridLabel = document.createElementNS(NS, 'text');
+  gridLabel.setAttribute('x', gridX + gridW / 2);
+  gridLabel.setAttribute('y', gridY - 22);
+  gridLabel.setAttribute('font-size', '14');
+  gridLabel.setAttribute('font-weight', '700');
+  gridLabel.setAttribute('fill', '#C0392B');
+  gridLabel.setAttribute('text-anchor', 'middle');
+  gridLabel.textContent = '2000 Standard Bottles';
+  tankSVG.appendChild(gridLabel);
+
+  const gridSubLabel = document.createElementNS(NS, 'text');
+  gridSubLabel.setAttribute('x', gridX + gridW / 2);
+  gridSubLabel.setAttribute('y', gridY - 6);
+  gridSubLabel.setAttribute('font-size', '11');
+  gridSubLabel.setAttribute('fill', '#566573');
+  gridSubLabel.setAttribute('text-anchor', 'middle');
+  gridSubLabel.textContent = '500 mL each • 50 columns × 40 rows';
+  tankSVG.appendChild(gridSubLabel);
+
+  // Build the bottle grid
+  const bottleW = gridW / COLS;
+  const bottleH = gridH / ROWS;
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', gridX + col * bottleW + 0.5);
+      rect.setAttribute('y', gridY + row * bottleH + 0.5);
+      rect.setAttribute('width', bottleW - 1);
+      rect.setAttribute('height', bottleH - 1);
+      rect.setAttribute('fill', '#ECEFF1');
+      rect.setAttribute('stroke', '#566573');
+      rect.setAttribute('stroke-width', '0.3');
+      tankSVG.appendChild(rect);
+      bottlesGrid.push(rect);
+    }
+  }
+}
+
+function fillNextBottles(n) {
+  for (let i = 0; i < n && bottleCount < TOTAL_BOTTLES; i++) {
+    bottlesGrid[bottleCount].setAttribute('fill', '#2E86C1');
+    bottleCount++;
+  }
+  // Update tank water level
+  const fraction = bottleCount / TOTAL_BOTTLES;
+  const tankH = 240;
+  const newH = (tankH - 8) * (1 - fraction);
+  const newY = 80 + 4 + ((tankH - 8) - newH);
+  tankWaterRect.setAttribute('y', newY);
+  tankWaterRect.setAttribute('height', newH);
+
+  // Update counter
+  document.getElementById('bottle-num').textContent = bottleCount.toLocaleString();
+
+  if (bottleCount >= TOTAL_BOTTLES) {
+    clearInterval(fillAnimation);
+    fillAnimation = null;
+    document.getElementById('start-btn').textContent = 'Done!';
+    document.getElementById('start-btn').disabled = true;
+  }
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  if (fillAnimation) return;
+  document.getElementById('start-btn').textContent = 'Filling...';
+  // 2000 bottles in ~12 seconds = ~167 bottles/sec → fill 8 every 50ms
+  fillAnimation = setInterval(() => fillNextBottles(8), 50);
+});
+
+document.getElementById('reset-btn').addEventListener('click', initTankSVG);
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+computeWorkflow();
+</script>
+
+</body>
+</html>

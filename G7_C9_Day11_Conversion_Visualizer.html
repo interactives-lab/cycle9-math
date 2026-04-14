@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 11 — Conversion Visualizer</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .slider-area {
+    background: var(--offwhite);
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .slider-area .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .slider-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .slider-row input[type="range"] {
+    flex: 1;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, var(--light-teal), var(--teal));
+    border-radius: 4px;
+    outline: none;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%; background: white;
+    border: 3px solid var(--slate); cursor: pointer;
+  }
+  .slider-row input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%; background: white;
+    border: 3px solid var(--slate); cursor: pointer;
+  }
+  .slider-row .k-value {
+    background: var(--slate); color: white;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 80px;
+    text-align: center;
+    font-family: 'Calibri', sans-serif;
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 6px 11px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .viz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 800px) {
+    .viz-grid { grid-template-columns: 1fr; }
+  }
+  .viz-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 14px;
+    text-align: center;
+  }
+  .viz-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .viz-card.area h3 { color: var(--purp); }
+  .viz-card.volume h3 { color: var(--gold); }
+
+  .viz-card svg {
+    display: block;
+    margin: 8px auto;
+    background: white;
+    border: 1px solid var(--grey);
+    border-radius: 3px;
+  }
+
+  .viz-stat {
+    background: white;
+    padding: 10px;
+    border-radius: 3px;
+    margin-top: 10px;
+    border-left: 4px solid var(--grey);
+  }
+  .viz-card.area .viz-stat { border-left-color: var(--purp); }
+  .viz-card.volume .viz-stat { border-left-color: var(--gold); }
+  .viz-stat .formula {
+    font-size: 12px;
+    color: var(--grey);
+    font-style: italic;
+  }
+  .viz-stat .value {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .viz-card.area .viz-stat .value { color: var(--purp); }
+  .viz-card.volume .viz-stat .value { color: var(--gold); }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-green);
+    border-left: 4px solid var(--green);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--green); }
+
+  .day5-callback {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--light-teal);
+    border-left: 4px solid var(--teal);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--slate);
+    font-style: italic;
+  }
+  .day5-callback strong { color: var(--teal); font-style: normal; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Conversion Visualizer</h1>
+  <span class="badge">CYCLE 9 • DAY 11 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Watch the Factor Get Squared and Cubed</h2>
+    <p class="instruction">Drag the slider to change the linear conversion factor k. Watch what happens to the AREA (k²) and VOLUME (k³). At k=100, you're seeing the m → cm conversion. The same rule applies for any k.</p>
+
+    <div class="slider-area">
+      <span class="label">Linear conversion factor (k) — drag to change</span>
+      <div class="slider-row">
+        <input type="range" id="k-slider" min="2" max="100" step="1" value="10">
+        <span class="k-value">k = <span id="k-display">10</span></span>
+      </div>
+      <div class="preset-btns">
+        <button class="preset-btn" data-k="10">k = 10 (1 dm = 10 cm)</button>
+        <button class="preset-btn" data-k="100">k = 100 (1 m = 100 cm)</button>
+        <button class="preset-btn" data-k="2">k = 2 (Day 5 dilation)</button>
+        <button class="preset-btn" data-k="5">k = 5</button>
+      </div>
+    </div>
+
+    <div class="viz-grid">
+
+      <div class="viz-card area">
+        <h3>AREA — factor k²</h3>
+        <svg id="area-svg" width="280" height="280" viewBox="0 0 280 280"></svg>
+        <div class="viz-stat">
+          <div class="formula">1 unit² → <span id="area-formula">k² = 10²</span> small squares</div>
+          <div class="value" id="area-value">100 small squares</div>
+        </div>
+      </div>
+
+      <div class="viz-card volume">
+        <h3>VOLUME — factor k³</h3>
+        <svg id="volume-svg" width="280" height="280" viewBox="0 0 280 280"></svg>
+        <div class="viz-stat">
+          <div class="formula">1 unit³ → <span id="volume-formula">k³ = 10³</span> small cubes</div>
+          <div class="value" id="volume-value">1,000 small cubes</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="day5-callback">
+      <strong>Day 5 callback:</strong> if k = 2, this is the dilation rule from Day 5. Doubling a shape gives 4× the area (k²) and 8× the volume (k³). Today, k = 100 gives the m → cm conversion: 10,000× the area and 1,000,000× the volume. Same rule. Different k.
+    </div>
+
+    <div class="insight-box">
+      <strong>The universal rule:</strong> lengths scale by k, areas by k², volumes by k³. The exponent in the unit (², ³) tells you how many times to multiply k by itself. This is Day 5's dilation rule AND today's metric conversion rule — same math, different application.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let k = 10;
+
+const NS = 'http://www.w3.org/2000/svg';
+
+// ════════════════════════════════════════════════════════
+// MATH (Python-verified — k, k², k³)
+// ════════════════════════════════════════════════════════
+function computeArea(kVal) { return kVal * kVal; }
+function computeVolume(kVal) { return kVal * kVal * kVal; }
+
+function formatNum(n) {
+  return n.toLocaleString();
+}
+
+// ════════════════════════════════════════════════════════
+// AREA VISUALIZATION
+// ════════════════════════════════════════════════════════
+function renderArea() {
+  const svg = document.getElementById('area-svg');
+  svg.innerHTML = '';
+
+  const W = 280, H = 280;
+  const margin = 20;
+  const size = W - 2 * margin;  // 240
+  const x0 = margin, y0 = margin;
+
+  // Outer 1 m² square (the "big" unit) — purple outline
+  const outer = document.createElementNS(NS, 'rect');
+  outer.setAttribute('x', x0);
+  outer.setAttribute('y', y0);
+  outer.setAttribute('width', size);
+  outer.setAttribute('height', size);
+  outer.setAttribute('fill', '#E8DAEF');
+  outer.setAttribute('stroke', '#6C3483');
+  outer.setAttribute('stroke-width', '3');
+  svg.appendChild(outer);
+
+  // Internal grid: divide into k × k cells
+  const cellSize = size / k;
+  const cellsTotal = k * k;
+
+  // For small k, draw individual cells with stroke; for large k, just draw fill grid
+  if (k <= 30) {
+    // Draw individual cells (light fill, dark borders)
+    for (let row = 0; row < k; row++) {
+      for (let col = 0; col < k; col++) {
+        const rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', x0 + col * cellSize);
+        rect.setAttribute('y', y0 + row * cellSize);
+        rect.setAttribute('width', cellSize);
+        rect.setAttribute('height', cellSize);
+        rect.setAttribute('fill', '#D5E8E2');
+        rect.setAttribute('stroke', '#0E6655');
+        rect.setAttribute('stroke-width', Math.max(0.4, 1.2 / Math.sqrt(k)));
+        svg.appendChild(rect);
+      }
+    }
+  } else {
+    // Just draw grid lines
+    const lineMat = '#0E6655';
+    const lineW = Math.max(0.2, 1 / Math.sqrt(k));
+    // Fill background
+    const fill = document.createElementNS(NS, 'rect');
+    fill.setAttribute('x', x0);
+    fill.setAttribute('y', y0);
+    fill.setAttribute('width', size);
+    fill.setAttribute('height', size);
+    fill.setAttribute('fill', '#D5E8E2');
+    svg.appendChild(fill);
+    // Vertical lines
+    for (let i = 1; i < k; i++) {
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', x0 + i * cellSize);
+      line.setAttribute('y1', y0);
+      line.setAttribute('x2', x0 + i * cellSize);
+      line.setAttribute('y2', y0 + size);
+      line.setAttribute('stroke', lineMat);
+      line.setAttribute('stroke-width', lineW);
+      svg.appendChild(line);
+    }
+    // Horizontal lines
+    for (let i = 1; i < k; i++) {
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', x0);
+      line.setAttribute('y1', y0 + i * cellSize);
+      line.setAttribute('x2', x0 + size);
+      line.setAttribute('y2', y0 + i * cellSize);
+      line.setAttribute('stroke', lineMat);
+      line.setAttribute('stroke-width', lineW);
+      svg.appendChild(line);
+    }
+  }
+
+  // Outer outline on top
+  const outerTop = document.createElementNS(NS, 'rect');
+  outerTop.setAttribute('x', x0);
+  outerTop.setAttribute('y', y0);
+  outerTop.setAttribute('width', size);
+  outerTop.setAttribute('height', size);
+  outerTop.setAttribute('fill', 'none');
+  outerTop.setAttribute('stroke', '#6C3483');
+  outerTop.setAttribute('stroke-width', '3');
+  svg.appendChild(outerTop);
+
+  // Side label: "k units"
+  const labelBottom = document.createElementNS(NS, 'text');
+  labelBottom.setAttribute('x', x0 + size / 2);
+  labelBottom.setAttribute('y', H - 4);
+  labelBottom.setAttribute('font-size', '11');
+  labelBottom.setAttribute('font-weight', '700');
+  labelBottom.setAttribute('fill', '#6C3483');
+  labelBottom.setAttribute('text-anchor', 'middle');
+  labelBottom.textContent = `${k} small units`;
+  svg.appendChild(labelBottom);
+}
+
+// ════════════════════════════════════════════════════════
+// VOLUME VISUALIZATION (3D-ish isometric cube)
+// ════════════════════════════════════════════════════════
+function renderVolume() {
+  const svg = document.getElementById('volume-svg');
+  svg.innerHTML = '';
+
+  const W = 280, H = 280;
+
+  // Isometric projection of a cube
+  // For a cube of "size" S, project corners
+  const S = 130;  // size of cube
+  const cx = 140, cy = 145;  // center
+
+  // Isometric angles
+  const cos30 = Math.cos(Math.PI / 6);
+  const sin30 = Math.sin(Math.PI / 6);
+
+  // Cube has 8 corners. In isometric:
+  // x-axis goes right and down (cos30, sin30)
+  // y-axis goes up (0, -1)
+  // z-axis goes left and down (-cos30, sin30)
+
+  function project(x, y, z) {
+    // x, y, z in unit cube coordinates [0, 1]
+    return [
+      cx + S * (x - 0.5) * cos30 - S * (z - 0.5) * cos30,
+      cy + S * (x - 0.5) * sin30 - S * (y - 0.5) + S * (z - 0.5) * sin30,
+    ];
+  }
+
+  // Get the 8 corners
+  const corners = {};
+  for (let i = 0; i < 8; i++) {
+    const x = (i & 1) ? 1 : 0;
+    const y = (i & 2) ? 1 : 0;
+    const z = (i & 4) ? 1 : 0;
+    corners[`${x}${y}${z}`] = project(x, y, z);
+  }
+
+  // Three visible faces: top (y=1), front (z=1), right (x=1)
+  // Top face: corners (0,1,0), (1,1,0), (1,1,1), (0,1,1)
+  const topFace = document.createElementNS(NS, 'polygon');
+  topFace.setAttribute('points',
+    `${corners['010'][0]},${corners['010'][1]} ${corners['110'][0]},${corners['110'][1]} ${corners['111'][0]},${corners['111'][1]} ${corners['011'][0]},${corners['011'][1]}`);
+  topFace.setAttribute('fill', '#F4ECC6');
+  topFace.setAttribute('stroke', '#B7950B');
+  topFace.setAttribute('stroke-width', '2.5');
+  topFace.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(topFace);
+
+  // Front face: corners (0,0,1), (1,0,1), (1,1,1), (0,1,1)
+  const frontFace = document.createElementNS(NS, 'polygon');
+  frontFace.setAttribute('points',
+    `${corners['001'][0]},${corners['001'][1]} ${corners['101'][0]},${corners['101'][1]} ${corners['111'][0]},${corners['111'][1]} ${corners['011'][0]},${corners['011'][1]}`);
+  frontFace.setAttribute('fill', '#E8DAB0');
+  frontFace.setAttribute('stroke', '#B7950B');
+  frontFace.setAttribute('stroke-width', '2.5');
+  frontFace.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(frontFace);
+
+  // Right face: corners (1,0,0), (1,0,1), (1,1,1), (1,1,0)
+  const rightFace = document.createElementNS(NS, 'polygon');
+  rightFace.setAttribute('points',
+    `${corners['100'][0]},${corners['100'][1]} ${corners['101'][0]},${corners['101'][1]} ${corners['111'][0]},${corners['111'][1]} ${corners['110'][0]},${corners['110'][1]}`);
+  rightFace.setAttribute('fill', '#D4C28A');
+  rightFace.setAttribute('stroke', '#B7950B');
+  rightFace.setAttribute('stroke-width', '2.5');
+  rightFace.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(rightFace);
+
+  // Subdivisions: only draw for k <= 20 (otherwise too dense)
+  const showSubs = k <= 20;
+  if (showSubs) {
+    const subLineMat = '#8B6914';
+    const subLineW = Math.max(0.4, 1.2 / Math.sqrt(k));
+
+    // Top face subdivisions
+    for (let i = 1; i < k; i++) {
+      const t = i / k;
+      // Lines parallel to one edge of top
+      const p1 = project(t, 1, 0);
+      const p2 = project(t, 1, 1);
+      const ln1 = document.createElementNS(NS, 'line');
+      ln1.setAttribute('x1', p1[0]); ln1.setAttribute('y1', p1[1]);
+      ln1.setAttribute('x2', p2[0]); ln1.setAttribute('y2', p2[1]);
+      ln1.setAttribute('stroke', subLineMat);
+      ln1.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln1);
+      const p3 = project(0, 1, t);
+      const p4 = project(1, 1, t);
+      const ln2 = document.createElementNS(NS, 'line');
+      ln2.setAttribute('x1', p3[0]); ln2.setAttribute('y1', p3[1]);
+      ln2.setAttribute('x2', p4[0]); ln2.setAttribute('y2', p4[1]);
+      ln2.setAttribute('stroke', subLineMat);
+      ln2.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln2);
+    }
+
+    // Front face subdivisions
+    for (let i = 1; i < k; i++) {
+      const t = i / k;
+      // Vertical lines on front
+      const p1 = project(t, 0, 1);
+      const p2 = project(t, 1, 1);
+      const ln1 = document.createElementNS(NS, 'line');
+      ln1.setAttribute('x1', p1[0]); ln1.setAttribute('y1', p1[1]);
+      ln1.setAttribute('x2', p2[0]); ln1.setAttribute('y2', p2[1]);
+      ln1.setAttribute('stroke', subLineMat);
+      ln1.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln1);
+      // Horizontal lines on front
+      const p3 = project(0, t, 1);
+      const p4 = project(1, t, 1);
+      const ln2 = document.createElementNS(NS, 'line');
+      ln2.setAttribute('x1', p3[0]); ln2.setAttribute('y1', p3[1]);
+      ln2.setAttribute('x2', p4[0]); ln2.setAttribute('y2', p4[1]);
+      ln2.setAttribute('stroke', subLineMat);
+      ln2.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln2);
+    }
+
+    // Right face subdivisions
+    for (let i = 1; i < k; i++) {
+      const t = i / k;
+      // Lines on right face
+      const p1 = project(1, 0, t);
+      const p2 = project(1, 1, t);
+      const ln1 = document.createElementNS(NS, 'line');
+      ln1.setAttribute('x1', p1[0]); ln1.setAttribute('y1', p1[1]);
+      ln1.setAttribute('x2', p2[0]); ln1.setAttribute('y2', p2[1]);
+      ln1.setAttribute('stroke', subLineMat);
+      ln1.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln1);
+      const p3 = project(1, t, 0);
+      const p4 = project(1, t, 1);
+      const ln2 = document.createElementNS(NS, 'line');
+      ln2.setAttribute('x1', p3[0]); ln2.setAttribute('y1', p3[1]);
+      ln2.setAttribute('x2', p4[0]); ln2.setAttribute('y2', p4[1]);
+      ln2.setAttribute('stroke', subLineMat);
+      ln2.setAttribute('stroke-width', subLineW);
+      svg.appendChild(ln2);
+    }
+  }
+
+  // Side label
+  const labelBottom = document.createElementNS(NS, 'text');
+  labelBottom.setAttribute('x', 140);
+  labelBottom.setAttribute('y', H - 4);
+  labelBottom.setAttribute('font-size', '11');
+  labelBottom.setAttribute('font-weight', '700');
+  labelBottom.setAttribute('fill', '#B7950B');
+  labelBottom.setAttribute('text-anchor', 'middle');
+  labelBottom.textContent = showSubs ? `${k} small units per edge` : `${k} per edge (too small to draw)`;
+  svg.appendChild(labelBottom);
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE STATS
+// ════════════════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('k-display').textContent = k;
+  const area = computeArea(k);
+  const vol = computeVolume(k);
+  document.getElementById('area-formula').textContent = `k² = ${k}²`;
+  document.getElementById('area-value').textContent = `${formatNum(area)} small squares`;
+  document.getElementById('volume-formula').textContent = `k³ = ${k}³`;
+  document.getElementById('volume-value').textContent = `${formatNum(vol)} small cubes`;
+}
+
+// ════════════════════════════════════════════════════════
+// MASTER UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  renderArea();
+  renderVolume();
+  updateStats();
+}
+
+// ════════════════════════════════════════════════════════
+// EVENTS
+// ════════════════════════════════════════════════════════
+document.getElementById('k-slider').addEventListener('input', e => {
+  k = parseInt(e.target.value);
+  update();
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    k = parseInt(btn.dataset.k);
+    document.getElementById('k-slider').value = k;
+    update();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

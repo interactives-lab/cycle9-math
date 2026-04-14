@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 13 — π Discovery Lab</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .canvas-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .canvas-area svg {
+    display: block;
+    margin: 0 auto;
+    cursor: pointer;
+  }
+  .canvas-area svg .handle {
+    cursor: ew-resize;
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 12px;
+    justify-content: center;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 6px 11px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+  .stat-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+    text-align: left;
+  }
+  .stat-card.r { border-left-color: var(--purp); }
+  .stat-card.d { border-left-color: var(--gold); }
+  .stat-card.c { border-left-color: var(--teal); }
+  .stat-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .stat-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .stat-card.r .value { color: var(--purp); }
+  .stat-card.d .value { color: var(--gold); }
+  .stat-card.c .value { color: var(--teal); }
+  .stat-card .unit {
+    font-size: 13px;
+    color: var(--grey);
+    margin-left: 4px;
+  }
+
+  .ratio-card {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: var(--slate);
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .ratio-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .ratio-card .value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #F4ECC6;
+  }
+  .ratio-card .true-pi {
+    font-size: 12px;
+    margin-top: 4px;
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>π Discovery Lab</h1>
+  <span class="badge">CYCLE 9 • DAY 13 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Drag the Circle. Watch C/d.</h2>
+    <p class="instruction">Drag the small purple handle on the circle's edge to make the circle bigger or smaller. Watch the circumference C and diameter d change. The ratio C/d stays exactly the same — that's π.</p>
+
+    <div class="canvas-area">
+      <svg id="canvas" width="700" height="400" viewBox="0 0 700 400"></svg>
+    </div>
+
+    <div class="preset-btns">
+      <button class="preset-btn" data-r="35">Bicycle Wheel (r=35)</button>
+      <button class="preset-btn" data-r="15">Dinner Plate (r=15)</button>
+      <button class="preset-btn" data-r="3">Coin (r=3)</button>
+      <button class="preset-btn" data-r="60">Hula Hoop (r=60)</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card r">
+        <div class="label">Radius (r)</div>
+        <div class="value" id="r-value">10<span class="unit">cm</span></div>
+      </div>
+      <div class="stat-card d">
+        <div class="label">Diameter (d)</div>
+        <div class="value" id="d-value">20<span class="unit">cm</span></div>
+      </div>
+      <div class="stat-card c">
+        <div class="label">Circumference (C)</div>
+        <div class="value" id="c-value">62.83<span class="unit">cm</span></div>
+      </div>
+    </div>
+
+    <div class="ratio-card">
+      <div class="label">The Ratio C ÷ d</div>
+      <div class="value" id="ratio-value">3.14159</div>
+      <div class="true-pi">This is π. Drag the circle to any size — the ratio doesn't change.</div>
+    </div>
+
+    <div class="insight-box">
+      <strong>The discovery:</strong> no matter how big or small the circle is, the ratio C/d is exactly π ≈ 3.14159. The radius can be 3 cm or 60 cm or any number — the ratio stays the same. That's because π is a property of CIRCLES THEMSELVES, not of any particular circle. It is one of the most important constants in all of mathematics.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let radiusCm = 10;  // radius in "real" cm units
+const PIXELS_PER_CM_MIN = 1.5;  // ensures large circles still fit
+const PIXELS_PER_CM_MAX = 12;
+const NS = 'http://www.w3.org/2000/svg';
+
+const canvas = document.getElementById('canvas');
+const W = 700, H = 400;
+const cx = 350, cy = 200;
+
+// Compute pixel radius — auto-scale so the circle always fits
+function pixelRadius() {
+  const maxAllowedPx = 150;  // never larger than this
+  const scale = Math.min(maxAllowedPx / radiusCm, PIXELS_PER_CM_MAX);
+  return Math.max(15, radiusCm * Math.max(scale, PIXELS_PER_CM_MIN));
+}
+
+// ════════════════════════════════════════════════════════
+// MATH (uses real π for accuracy)
+// ════════════════════════════════════════════════════════
+function computeStats() {
+  const d = 2 * radiusCm;
+  const c = 2 * Math.PI * radiusCm;
+  return { r: radiusCm, d, c, ratio: c / d };
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function render() {
+  canvas.innerHTML = '';
+  const px = pixelRadius();
+
+  // OUTER circle (the main circle being measured)
+  const circle = document.createElementNS(NS, 'circle');
+  circle.setAttribute('cx', cx);
+  circle.setAttribute('cy', cy);
+  circle.setAttribute('r', px);
+  circle.setAttribute('fill', '#F4F6F7');
+  circle.setAttribute('stroke', '#0E6655');
+  circle.setAttribute('stroke-width', 4);
+  canvas.appendChild(circle);
+
+  // Centre dot
+  const centre = document.createElementNS(NS, 'circle');
+  centre.setAttribute('cx', cx);
+  centre.setAttribute('cy', cy);
+  centre.setAttribute('r', 3);
+  centre.setAttribute('fill', '#2C3E50');
+  canvas.appendChild(centre);
+
+  // RADIUS line (from centre to right edge, purple)
+  const rline = document.createElementNS(NS, 'line');
+  rline.setAttribute('x1', cx);
+  rline.setAttribute('y1', cy);
+  rline.setAttribute('x2', cx + px);
+  rline.setAttribute('y2', cy);
+  rline.setAttribute('stroke', '#6C3483');
+  rline.setAttribute('stroke-width', 4);
+  canvas.appendChild(rline);
+
+  // Radius label
+  const rlabel = document.createElementNS(NS, 'text');
+  rlabel.setAttribute('x', cx + px / 2);
+  rlabel.setAttribute('y', cy - 8);
+  rlabel.setAttribute('font-size', '14');
+  rlabel.setAttribute('font-weight', '700');
+  rlabel.setAttribute('fill', '#6C3483');
+  rlabel.setAttribute('text-anchor', 'middle');
+  rlabel.textContent = 'r';
+  canvas.appendChild(rlabel);
+
+  // DIAMETER line (across, gold)
+  const dline = document.createElementNS(NS, 'line');
+  dline.setAttribute('x1', cx - px);
+  dline.setAttribute('y1', cy + px + 25);
+  dline.setAttribute('x2', cx + px);
+  dline.setAttribute('y2', cy + px + 25);
+  dline.setAttribute('stroke', '#B7950B');
+  dline.setAttribute('stroke-width', 3);
+  canvas.appendChild(dline);
+
+  // Tick marks at ends of diameter line
+  for (const dx of [-px, px]) {
+    const tick = document.createElementNS(NS, 'line');
+    tick.setAttribute('x1', cx + dx);
+    tick.setAttribute('y1', cy + px + 18);
+    tick.setAttribute('x2', cx + dx);
+    tick.setAttribute('y2', cy + px + 32);
+    tick.setAttribute('stroke', '#B7950B');
+    tick.setAttribute('stroke-width', 3);
+    canvas.appendChild(tick);
+  }
+
+  // Diameter label
+  const dlabel = document.createElementNS(NS, 'text');
+  dlabel.setAttribute('x', cx);
+  dlabel.setAttribute('y', cy + px + 50);
+  dlabel.setAttribute('font-size', '14');
+  dlabel.setAttribute('font-weight', '700');
+  dlabel.setAttribute('fill', '#B7950B');
+  dlabel.setAttribute('text-anchor', 'middle');
+  dlabel.textContent = 'd = 2r';
+  canvas.appendChild(dlabel);
+
+  // Circumference label (top of circle)
+  const clabel = document.createElementNS(NS, 'text');
+  clabel.setAttribute('x', cx);
+  clabel.setAttribute('y', cy - px - 12);
+  clabel.setAttribute('font-size', '14');
+  clabel.setAttribute('font-weight', '700');
+  clabel.setAttribute('fill', '#0E6655');
+  clabel.setAttribute('text-anchor', 'middle');
+  clabel.textContent = 'C  (the curve around)';
+  canvas.appendChild(clabel);
+
+  // DRAGGABLE HANDLE on the right edge of the circle
+  const handle = document.createElementNS(NS, 'circle');
+  handle.setAttribute('cx', cx + px);
+  handle.setAttribute('cy', cy);
+  handle.setAttribute('r', 10);
+  handle.setAttribute('fill', '#6C3483');
+  handle.setAttribute('stroke', 'white');
+  handle.setAttribute('stroke-width', 3);
+  handle.setAttribute('class', 'handle');
+  handle.setAttribute('id', 'drag-handle');
+  canvas.appendChild(handle);
+
+  // Drag instruction
+  const inst = document.createElementNS(NS, 'text');
+  inst.setAttribute('x', cx + px + 18);
+  inst.setAttribute('y', cy + 5);
+  inst.setAttribute('font-size', '11');
+  inst.setAttribute('font-style', 'italic');
+  inst.setAttribute('fill', '#566573');
+  inst.textContent = '← drag';
+  canvas.appendChild(inst);
+
+  // Wire up drag handlers
+  attachDragHandlers(handle);
+}
+
+// ════════════════════════════════════════════════════════
+// DRAG HANDLERS
+// ════════════════════════════════════════════════════════
+function attachDragHandlers(handle) {
+  let dragging = false;
+
+  function onPointerDown(e) {
+    dragging = true;
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX);
+    if (clientX === undefined) return;
+    const svgX = (clientX - rect.left) * (W / rect.width);
+    const newPx = Math.max(15, Math.min(150, svgX - cx));
+    // Convert pixel radius back to cm radius
+    // We want pixelRadius() to equal newPx, working backward
+    // pixelRadius = radiusCm × scale, where scale = min(150/radiusCm, 12)
+    // For radiusCm <= 12.5, scale = 12, so pixelRadius = 12 × radiusCm
+    // For radiusCm > 12.5, scale = 150/radiusCm, so pixelRadius = 150
+    // So the only way to vary pixel radius is when radiusCm <= 12.5
+    // Better approach: directly map pixel radius range [15, 150] → cm range [1, 100]
+    radiusCm = Math.round((1 + (newPx - 15) / 135 * 99) * 10) / 10;
+    update();
+  }
+
+  function onPointerUp() {
+    dragging = false;
+  }
+
+  handle.addEventListener('mousedown', onPointerDown);
+  handle.addEventListener('touchstart', onPointerDown);
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('touchmove', onPointerMove);
+  document.addEventListener('mouseup', onPointerUp);
+  document.addEventListener('touchend', onPointerUp);
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  const stats = computeStats();
+  document.getElementById('r-value').innerHTML =
+    `${stats.r.toFixed(1)}<span class="unit">cm</span>`;
+  document.getElementById('d-value').innerHTML =
+    `${stats.d.toFixed(1)}<span class="unit">cm</span>`;
+  document.getElementById('c-value').innerHTML =
+    `${stats.c.toFixed(2)}<span class="unit">cm</span>`;
+  document.getElementById('ratio-value').textContent =
+    stats.ratio.toFixed(5);
+  render();
+}
+
+// ════════════════════════════════════════════════════════
+// PRESETS
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    radiusCm = parseFloat(btn.dataset.r);
+    update();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

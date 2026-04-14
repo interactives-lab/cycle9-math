@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 14 — Compass Simulator</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .mode-toggle {
+    display: flex; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 10px 16px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    color: var(--slate); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { background: var(--light-grey); }
+  .mode-btn.active.r { background: var(--purp); color: white; border-color: var(--purp); }
+  .mode-btn.active.d { background: var(--gold); color: white; border-color: var(--gold); }
+  .mode-btn.active.c { background: var(--teal); color: white; border-color: var(--teal); }
+
+  .input-area {
+    background: var(--offwhite);
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .input-area .label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .input-area input {
+    flex: 1;
+    min-width: 150px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--grey);
+    border-radius: 4px;
+    font-size: 18px;
+    font-family: inherit;
+    font-weight: 700;
+    text-align: center;
+  }
+  .input-area input:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+  .input-area .unit {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .preset-btn {
+    background: var(--light-teal);
+    border: 1px solid var(--teal);
+    padding: 6px 11px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--teal); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+
+  .canvas-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+    position: relative;
+  }
+  .canvas-area svg { display: block; margin: 0 auto; }
+
+  .construct-btn {
+    background: var(--coral);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    margin-top: 12px;
+  }
+  .construct-btn:hover { background: #952c20; }
+  .construct-btn:disabled { background: var(--grey); cursor: not-allowed; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+  .stat-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+    text-align: left;
+  }
+  .stat-card.r { border-left-color: var(--purp); }
+  .stat-card.d { border-left-color: var(--gold); }
+  .stat-card.c { border-left-color: var(--teal); }
+  .stat-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .stat-card.r .value { color: var(--purp); }
+  .stat-card.d .value { color: var(--gold); }
+  .stat-card.c .value { color: var(--teal); }
+  .stat-card .unit {
+    font-size: 12px;
+    color: var(--grey);
+    margin-left: 4px;
+  }
+  .stat-card .formula {
+    font-size: 10px;
+    color: var(--grey);
+    margin-top: 3px;
+    font-style: italic;
+  }
+  .stat-card.highlight {
+    background: var(--light-gold);
+    border-left-width: 6px;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Compass Simulator</h1>
+  <span class="badge">CYCLE 9 • DAY 14 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Pick What You Know. Construct the Circle.</h2>
+    <p class="instruction">Choose which measurement you're starting from — radius, diameter, or circumference. Type a value. Click "Construct Circle" and watch the compass draw.</p>
+
+    <div class="mode-toggle">
+      <button class="mode-btn r active" data-mode="r">I know the RADIUS</button>
+      <button class="mode-btn d" data-mode="d">I know the DIAMETER</button>
+      <button class="mode-btn c" data-mode="c">I know the CIRCUMFERENCE</button>
+    </div>
+
+    <div class="input-area">
+      <span class="label" id="input-label">Radius:</span>
+      <input type="number" id="input-value" value="5" min="0.1" max="50" step="0.1">
+      <span class="unit">cm</span>
+    </div>
+
+    <div class="preset-btns">
+      <button class="preset-btn" data-mode="r" data-val="4">r = 4 cm (S1)</button>
+      <button class="preset-btn" data-mode="r" data-val="8">r = 8 cm (S2)</button>
+      <button class="preset-btn" data-mode="d" data-val="9">d = 9 cm (S3)</button>
+      <button class="preset-btn" data-mode="c" data-val="40">C ≈ 40 cm (S4, reverse)</button>
+    </div>
+
+    <div class="canvas-area">
+      <svg id="canvas" width="500" height="420" viewBox="0 0 500 420"></svg>
+      <div>
+        <button class="construct-btn" id="construct-btn">Construct Circle</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card r" id="card-r">
+        <div class="label">Radius (r)</div>
+        <div class="value" id="r-value">5.0<span class="unit">cm</span></div>
+        <div class="formula" id="r-formula">given</div>
+      </div>
+      <div class="stat-card d" id="card-d">
+        <div class="label">Diameter (d)</div>
+        <div class="value" id="d-value">10.0<span class="unit">cm</span></div>
+        <div class="formula" id="d-formula">d = 2r = 2 × 5</div>
+      </div>
+      <div class="stat-card c" id="card-c">
+        <div class="label">Circumference (C)</div>
+        <div class="value" id="c-value">31.4<span class="unit">cm</span></div>
+        <div class="formula" id="c-formula">C = 2πr = 2 × 3.14 × 5</div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <strong>The compass always needs r.</strong> If you started from d, the simulator first computed r = d/2 before drawing. If you started from C, the simulator first computed d = C/π, then r = d/2, then drew. Whatever you give it, the first job is always to find the radius.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const PI = 3.14;  // Grade 7 approximation (matches action slices)
+let mode = 'r';   // 'r', 'd', or 'c'
+let radiusCm = 5; // current radius in real cm units
+let animating = false;
+
+const NS = 'http://www.w3.org/2000/svg';
+
+// ════════════════════════════════════════════════════════
+// MATH — mode-aware computation
+// ════════════════════════════════════════════════════════
+function computeFromInput(value, whichMode) {
+  if (whichMode === 'r') {
+    const r = value;
+    return { r, d: 2 * r, c: 2 * PI * r };
+  } else if (whichMode === 'd') {
+    const d = value;
+    const r = d / 2;
+    return { r, d, c: PI * d };
+  } else { // 'c'
+    const c = value;
+    const d = c / PI;
+    const r = d / 2;
+    return { r, d, c };
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER — compass drawing the circle
+// ════════════════════════════════════════════════════════
+const canvas = document.getElementById('canvas');
+const W = 500, H = 420;
+const cx = 250, cy = 220;
+
+function pixelRadius() {
+  // Auto-scale: keep circle within canvas
+  const maxPx = 160;
+  const scale = Math.min(maxPx / Math.max(radiusCm, 0.1), 15);
+  return Math.max(20, radiusCm * Math.max(scale, 2.5));
+}
+
+function renderStatic() {
+  canvas.innerHTML = '';
+  const px = pixelRadius();
+
+  // Construction lines (faded grid)
+  // (skip — keep it clean)
+
+  // The circle (initially no circle drawn, just the centre + compass)
+  const centreDot = document.createElementNS(NS, 'circle');
+  centreDot.setAttribute('cx', cx);
+  centreDot.setAttribute('cy', cy);
+  centreDot.setAttribute('r', 4);
+  centreDot.setAttribute('fill', '#2C3E50');
+  canvas.appendChild(centreDot);
+
+  // Compass point (at centre)
+  // Compass arms
+  const armAngle = -75 * Math.PI / 180;  // tilt the compass
+  const armEnd_x = cx + px * Math.cos(armAngle);
+  const armEnd_y = cy + px * Math.sin(armAngle);
+
+  // Compass body (simple V shape)
+  const arm1 = document.createElementNS(NS, 'line');
+  arm1.setAttribute('x1', cx);
+  arm1.setAttribute('y1', cy);
+  arm1.setAttribute('x2', cx - 2);
+  arm1.setAttribute('y2', cy - 80);
+  arm1.setAttribute('stroke', '#6C3483');
+  arm1.setAttribute('stroke-width', 3);
+  canvas.appendChild(arm1);
+
+  const arm2 = document.createElementNS(NS, 'line');
+  arm2.setAttribute('x1', armEnd_x);
+  arm2.setAttribute('y1', armEnd_y);
+  arm2.setAttribute('x2', cx - 2);
+  arm2.setAttribute('y2', cy - 80);
+  arm2.setAttribute('stroke', '#6C3483');
+  arm2.setAttribute('stroke-width', 3);
+  canvas.appendChild(arm2);
+
+  // Pivot (knob at top)
+  const knob = document.createElementNS(NS, 'circle');
+  knob.setAttribute('cx', cx - 2);
+  knob.setAttribute('cy', cy - 80);
+  knob.setAttribute('r', 6);
+  knob.setAttribute('fill', '#B7950B');
+  knob.setAttribute('stroke', '#6C3483');
+  knob.setAttribute('stroke-width', 2);
+  canvas.appendChild(knob);
+
+  // Pencil tip at the moving end
+  const tip = document.createElementNS(NS, 'circle');
+  tip.setAttribute('cx', armEnd_x);
+  tip.setAttribute('cy', armEnd_y);
+  tip.setAttribute('r', 4);
+  tip.setAttribute('fill', '#C0392B');
+  canvas.appendChild(tip);
+
+  // Radius label showing current setting
+  const midX = (cx + armEnd_x) / 2;
+  const midY = (cy + armEnd_y) / 2;
+  const radLabel = document.createElementNS(NS, 'text');
+  radLabel.setAttribute('x', midX + 15);
+  radLabel.setAttribute('y', midY - 5);
+  radLabel.setAttribute('font-size', '12');
+  radLabel.setAttribute('font-weight', '700');
+  radLabel.setAttribute('fill', '#6C3483');
+  radLabel.textContent = `r = ${radiusCm.toFixed(2)} cm`;
+  canvas.appendChild(radLabel);
+
+  // Instruction text
+  const inst = document.createElementNS(NS, 'text');
+  inst.setAttribute('x', cx);
+  inst.setAttribute('y', 30);
+  inst.setAttribute('font-size', '13');
+  inst.setAttribute('font-weight', '700');
+  inst.setAttribute('fill', '#0E6655');
+  inst.setAttribute('text-anchor', 'middle');
+  inst.textContent = 'Compass set. Ready to construct.';
+  canvas.appendChild(inst);
+}
+
+function animateConstruction() {
+  if (animating) return;
+  animating = true;
+  document.getElementById('construct-btn').disabled = true;
+
+  canvas.innerHTML = '';
+  const px = pixelRadius();
+
+  // Centre dot
+  const centreDot = document.createElementNS(NS, 'circle');
+  centreDot.setAttribute('cx', cx);
+  centreDot.setAttribute('cy', cy);
+  centreDot.setAttribute('r', 4);
+  centreDot.setAttribute('fill', '#2C3E50');
+  canvas.appendChild(centreDot);
+
+  // The arc being drawn — a path that grows
+  const arc = document.createElementNS(NS, 'path');
+  arc.setAttribute('fill', 'none');
+  arc.setAttribute('stroke', '#0E6655');
+  arc.setAttribute('stroke-width', 3);
+  arc.setAttribute('stroke-linecap', 'round');
+  canvas.appendChild(arc);
+
+  // Moving pencil tip
+  const tip = document.createElementNS(NS, 'circle');
+  tip.setAttribute('r', 5);
+  tip.setAttribute('fill', '#C0392B');
+  tip.setAttribute('stroke', 'white');
+  tip.setAttribute('stroke-width', 1.5);
+  canvas.appendChild(tip);
+
+  // The compass arms (static, but pointing at the tip)
+  const armLine = document.createElementNS(NS, 'line');
+  armLine.setAttribute('x1', cx);
+  armLine.setAttribute('y1', cy);
+  armLine.setAttribute('stroke', '#6C3483');
+  armLine.setAttribute('stroke-width', 2);
+  armLine.setAttribute('stroke-dasharray', '3,3');
+  armLine.setAttribute('opacity', '0.6');
+  canvas.appendChild(armLine);
+
+  // Angle marker / progress text
+  const progressText = document.createElementNS(NS, 'text');
+  progressText.setAttribute('x', cx);
+  progressText.setAttribute('y', 30);
+  progressText.setAttribute('font-size', '13');
+  progressText.setAttribute('font-weight', '700');
+  progressText.setAttribute('fill', '#0E6655');
+  progressText.setAttribute('text-anchor', 'middle');
+  progressText.textContent = 'Constructing circle...';
+  canvas.appendChild(progressText);
+
+  // Animate
+  const startAngle = -Math.PI / 2;  // start at top
+  const duration = 1800;  // ms
+  const startTime = performance.now();
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const currentAngle = startAngle + progress * 2 * Math.PI;
+
+    // Current pencil tip position
+    const tipX = cx + px * Math.cos(currentAngle);
+    const tipY = cy + px * Math.sin(currentAngle);
+
+    // Build arc path from startAngle to currentAngle
+    const startX = cx + px * Math.cos(startAngle);
+    const startY = cy + px * Math.sin(startAngle);
+    const largeArc = (currentAngle - startAngle) > Math.PI ? 1 : 0;
+    const sweep = 1;
+    if (progress < 1) {
+      arc.setAttribute('d', `M ${startX} ${startY} A ${px} ${px} 0 ${largeArc} ${sweep} ${tipX} ${tipY}`);
+    } else {
+      // Close the full circle
+      arc.setAttribute('d', `M ${cx - px} ${cy} A ${px} ${px} 0 1 0 ${cx + px} ${cy} A ${px} ${px} 0 1 0 ${cx - px} ${cy} Z`);
+      progressText.textContent = 'Circle complete!';
+    }
+
+    // Update pencil tip
+    tip.setAttribute('cx', tipX);
+    tip.setAttribute('cy', tipY);
+    armLine.setAttribute('x2', tipX);
+    armLine.setAttribute('y2', tipY);
+
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      animating = false;
+      document.getElementById('construct-btn').disabled = false;
+      // Add labels after animation
+      addFinishedLabels(px);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function addFinishedLabels(px) {
+  // Radius line (purple, from centre to right edge)
+  const rline = document.createElementNS(NS, 'line');
+  rline.setAttribute('x1', cx);
+  rline.setAttribute('y1', cy);
+  rline.setAttribute('x2', cx + px);
+  rline.setAttribute('y2', cy);
+  rline.setAttribute('stroke', '#6C3483');
+  rline.setAttribute('stroke-width', 3);
+  canvas.appendChild(rline);
+
+  const rlabel = document.createElementNS(NS, 'text');
+  rlabel.setAttribute('x', cx + px / 2);
+  rlabel.setAttribute('y', cy - 8);
+  rlabel.setAttribute('font-size', '13');
+  rlabel.setAttribute('font-weight', '700');
+  rlabel.setAttribute('fill', '#6C3483');
+  rlabel.setAttribute('text-anchor', 'middle');
+  rlabel.textContent = `r = ${radiusCm.toFixed(2)}`;
+  canvas.appendChild(rlabel);
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  const value = parseFloat(document.getElementById('input-value').value) || 0;
+  const stats = computeFromInput(value, mode);
+  radiusCm = stats.r;
+
+  document.getElementById('r-value').innerHTML =
+    `${stats.r.toFixed(2)}<span class="unit">cm</span>`;
+  document.getElementById('d-value').innerHTML =
+    `${stats.d.toFixed(2)}<span class="unit">cm</span>`;
+  document.getElementById('c-value').innerHTML =
+    `${stats.c.toFixed(2)}<span class="unit">cm</span>`;
+
+  // Formulas — show what was computed from what
+  if (mode === 'r') {
+    document.getElementById('r-formula').textContent = 'given';
+    document.getElementById('d-formula').textContent = `d = 2r = 2 × ${stats.r.toFixed(2)}`;
+    document.getElementById('c-formula').textContent = `C = 2πr = 2 × 3.14 × ${stats.r.toFixed(2)}`;
+  } else if (mode === 'd') {
+    document.getElementById('r-formula').textContent = `r = d/2 = ${stats.d.toFixed(2)}/2`;
+    document.getElementById('d-formula').textContent = 'given';
+    document.getElementById('c-formula').textContent = `C = πd = 3.14 × ${stats.d.toFixed(2)}`;
+  } else { // 'c'
+    document.getElementById('r-formula').textContent = `r = d/2 = ${stats.d.toFixed(2)}/2`;
+    document.getElementById('d-formula').textContent = `d = C/π = ${stats.c.toFixed(2)}/3.14`;
+    document.getElementById('c-formula').textContent = 'given';
+  }
+
+  // Highlight the "given" card
+  document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('highlight'));
+  document.getElementById(`card-${mode}`).classList.add('highlight');
+
+  renderStatic();
+}
+
+// ════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ════════════════════════════════════════════════════════
+function setMode(newMode) {
+  mode = newMode;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === newMode);
+  });
+  // Update input label
+  const labels = { r: 'Radius:', d: 'Diameter:', c: 'Circumference:' };
+  document.getElementById('input-label').textContent = labels[newMode];
+
+  // Reasonable default values for each mode
+  const defaults = { r: 5, d: 10, c: 31.4 };
+  document.getElementById('input-value').value = defaults[newMode];
+
+  update();
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+
+document.getElementById('input-value').addEventListener('input', update);
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setMode(btn.dataset.mode);
+    document.getElementById('input-value').value = btn.dataset.val;
+    update();
+  });
+});
+
+document.getElementById('construct-btn').addEventListener('click', animateConstruction);
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

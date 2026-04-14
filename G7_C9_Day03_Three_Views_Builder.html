@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 3 — Three-Views Builder</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite);
+    color: var(--slate);
+  }
+  .header {
+    background: var(--teal);
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal);
+    padding-bottom: 6px;
+  }
+  .panel h3 {
+    margin: 12px 0 6px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+  }
+  .instruction {
+    font-size: 12px;
+    color: var(--slate);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .top-view-area {
+    background: var(--light-grey);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+  }
+  .top-view-area svg {
+    display: block;
+    margin: 0 auto;
+  }
+  .height-legend {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--grey);
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+  .ctrl-btn {
+    background: white;
+    border: 1px solid var(--grey);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--slate);
+    font-family: inherit;
+  }
+  .ctrl-btn:hover { background: var(--light-grey); }
+  .preset-btn {
+    background: var(--light-teal);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .preset-btn:hover { background: var(--teal); color: white; }
+  .clear-btn {
+    background: var(--light-coral);
+    border-color: var(--coral);
+    color: var(--coral);
+  }
+  .clear-btn:hover { background: var(--coral); color: white; }
+
+  .views-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .view-box {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+  }
+  .view-box .label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--grey);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .view-box.top    { border-left: 4px solid var(--teal); }
+  .view-box.front  { border-left: 4px solid var(--purp); }
+  .view-box.side   { border-left: 4px solid var(--gold); }
+  .view-box.top .label    { color: var(--teal); }
+  .view-box.front .label  { color: var(--purp); }
+  .view-box.side .label   { color: var(--gold); }
+  .view-box svg {
+    background: white;
+    border: 1px solid var(--light-grey);
+  }
+
+  .stats {
+    background: var(--light-teal);
+    border-left: 4px solid var(--teal);
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .stats .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .stats .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--slate);
+  }
+
+  .iso-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .iso-area svg { display: block; margin: 0 auto; }
+
+  .legend {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--grey);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Three-Views Builder</h1>
+  <span class="badge">CYCLE 9 • DAY 3 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <!-- LEFT: BUILD AREA -->
+  <div class="panel">
+    <h2>Build Your Structure</h2>
+    <p class="instruction">Click a cell to add a cube. Click again to stack another. Right-click to remove. The number on each cell shows the column height.</p>
+
+    <div class="top-view-area">
+      <svg id="build-grid" width="280" height="280"></svg>
+      <div class="height-legend">Top-down view of your structure (click to build)</div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn preset-btn" data-preset="row">4 in a row</button>
+      <button class="ctrl-btn preset-btn" data-preset="L4">4-cube L</button>
+      <button class="ctrl-btn preset-btn" data-preset="L3">3-cube L</button>
+      <button class="ctrl-btn preset-btn" data-preset="staircase">Staircase</button>
+      <button class="ctrl-btn preset-btn" data-preset="tower">Tower</button>
+      <button class="ctrl-btn clear-btn" id="clear-btn">Clear</button>
+    </div>
+
+    <div class="stats">
+      <div class="label">Total cubes</div>
+      <div class="value" id="cube-count">0</div>
+    </div>
+
+    <div class="legend">
+      <strong>How to read the grid:</strong> each cell of the top-down grid is one column of cubes. The number tells you how many cubes are stacked in that column. Click to add a cube to the column; right-click (or long-press on touch) to remove one.
+    </div>
+  </div>
+
+  <!-- RIGHT: VIEWS + 3D -->
+  <div class="panel">
+    <h2>The Three Views</h2>
+    <p class="instruction">As you build on the left, the top, front, and side views render here automatically. All three views use the same scale: 1 grid square = 1 cube face.</p>
+
+    <div class="views-row">
+      <div class="view-box top">
+        <div class="label">TOP</div>
+        <svg id="view-top" width="120" height="120"></svg>
+      </div>
+      <div class="view-box front">
+        <div class="label">FRONT</div>
+        <svg id="view-front" width="120" height="120"></svg>
+      </div>
+      <div class="view-box side">
+        <div class="label">SIDE</div>
+        <svg id="view-side" width="120" height="120"></svg>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 16px;">3D View (isometric projection)</h3>
+    <div class="iso-area">
+      <svg id="iso-view" width="380" height="280"></svg>
+    </div>
+
+    <div class="legend">
+      <strong>What you're seeing:</strong> the TOP view (teal) shows the footprint — what you'd see looking straight down. The FRONT view (purple) shows the silhouette from in front. The SIDE view (gold) shows the silhouette from the left. The 3D isometric view shows all three dimensions in a single drawing — that's what we'll learn to draw on Day 4.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+const GRID_SIZE = 5;  // 5x5 top-view grid
+// heights[x][z] = number of cubes stacked at column (x, z)
+// x = front-back axis (smaller x = front), z = left-right axis (smaller z = left)
+// Wait — let me be consistent: x = left-right, z = front-back, y = up
+// Top view: looking down the y-axis. We see the (x, z) plane.
+// Front view: looking along -z (toward +z). We see the (x, y) plane.
+// Side view: looking along -x (toward +x... no, looking from +x toward -x).
+//            We see the (z, y) plane.
+let heights = [];
+for (let x = 0; x < GRID_SIZE; x++) {
+  heights.push(new Array(GRID_SIZE).fill(0));
+}
+
+// ════════════════════════════════════════════════════════
+// BUILD GRID (top-down editable view)
+// ════════════════════════════════════════════════════════
+const buildSvg = document.getElementById('build-grid');
+const CELL = 50;  // pixel size of each cell
+const PAD = 15;
+const NS = 'http://www.w3.org/2000/svg';
+
+function renderBuildGrid() {
+  buildSvg.innerHTML = '';
+
+  // Cells
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      const h = heights[x][z];
+      const px = PAD + x * CELL;
+      const py = PAD + z * CELL;
+
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', px);
+      rect.setAttribute('y', py);
+      rect.setAttribute('width', CELL);
+      rect.setAttribute('height', CELL);
+      // Color intensity by height
+      let fill = '#ffffff';
+      if (h === 1) fill = '#D5E8E2';  // light teal
+      else if (h === 2) fill = '#A6D0C2';
+      else if (h === 3) fill = '#77B8A2';
+      else if (h === 4) fill = '#4AA082';
+      else if (h >= 5) fill = '#0E6655';
+      rect.setAttribute('fill', fill);
+      rect.setAttribute('stroke', '#566573');
+      rect.setAttribute('stroke-width', '1');
+      rect.style.cursor = 'pointer';
+      rect.addEventListener('click', () => {
+        if (heights[x][z] < 6) heights[x][z]++;
+        renderAll();
+      });
+      rect.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (heights[x][z] > 0) heights[x][z]--;
+        renderAll();
+      });
+      buildSvg.appendChild(rect);
+
+      // Height number
+      if (h > 0) {
+        const text = document.createElementNS(NS, 'text');
+        text.setAttribute('x', px + CELL/2);
+        text.setAttribute('y', py + CELL/2 + 6);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '18');
+        text.setAttribute('font-weight', '700');
+        text.setAttribute('fill', h >= 4 ? '#ffffff' : '#2C3E50');
+        text.style.pointerEvents = 'none';
+        text.textContent = h;
+        buildSvg.appendChild(text);
+      }
+    }
+  }
+
+  // Axis labels
+  const labels = [
+    { text: 'FRONT →', x: PAD + GRID_SIZE * CELL / 2, y: PAD + GRID_SIZE * CELL + 18, anchor: 'middle' },
+    { text: '← LEFT', x: PAD - 4, y: PAD + GRID_SIZE * CELL / 2 + 4, anchor: 'end' },
+  ];
+  labels.forEach(l => {
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', l.x);
+    text.setAttribute('y', l.y);
+    text.setAttribute('text-anchor', l.anchor);
+    text.setAttribute('font-size', '10');
+    text.setAttribute('fill', '#566573');
+    text.textContent = l.text;
+    buildSvg.appendChild(text);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// COMPUTE THE THREE VIEWS
+// ════════════════════════════════════════════════════════
+function getTopView() {
+  // Top view: a cell is filled if there's any cube there (height > 0)
+  // Returns a 2D grid the same size as the heights grid
+  const grid = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    grid.push([]);
+    for (let z = 0; z < GRID_SIZE; z++) {
+      grid[x].push(heights[x][z] > 0 ? 1 : 0);
+    }
+  }
+  return grid;
+}
+
+function getFrontView() {
+  // Front view: looking from -z direction toward +z
+  // (so the FRONT row is z=0, and we see x going right, y going up)
+  // For each (x, y), the cell is filled if ANY column at that x has height >= y+1
+  // Y dimension = max height across all z for each x
+  // Width = GRID_SIZE (in x), Height = max height across the whole grid
+  let maxH = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      if (heights[x][z] > maxH) maxH = heights[x][z];
+    }
+  }
+  if (maxH === 0) return { grid: [], maxH: 0 };
+
+  const grid = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    grid.push([]);
+    // For each height level y from 0 to maxH-1, is there a cube at (x, *, y)?
+    for (let y = 0; y < maxH; y++) {
+      // Look for any z where heights[x][z] > y
+      let filled = 0;
+      for (let z = 0; z < GRID_SIZE; z++) {
+        if (heights[x][z] > y) {
+          filled = 1;
+          break;
+        }
+      }
+      grid[x].push(filled);
+    }
+  }
+  return { grid, maxH };
+}
+
+function getSideView() {
+  // Side view: looking from +x direction toward -x
+  // We see z going right (the depth), y going up
+  // For each (z, y), filled if any x has height > y
+  // Width = GRID_SIZE (in z), Height = max height across the whole grid
+  let maxH = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      if (heights[x][z] > maxH) maxH = heights[x][z];
+    }
+  }
+  if (maxH === 0) return { grid: [], maxH: 0 };
+
+  const grid = [];
+  for (let z = 0; z < GRID_SIZE; z++) {
+    grid.push([]);
+    for (let y = 0; y < maxH; y++) {
+      let filled = 0;
+      for (let x = 0; x < GRID_SIZE; x++) {
+        if (heights[x][z] > y) {
+          filled = 1;
+          break;
+        }
+      }
+      grid[z].push(filled);
+    }
+  }
+  return { grid, maxH };
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER VIEWS
+// ════════════════════════════════════════════════════════
+function renderViewSvg(svgId, grid, color, accent) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  if (!grid || grid.length === 0) return;
+
+  const cols = grid.length;
+  const rows = grid[0] ? grid[0].length : 0;
+  if (rows === 0) return;
+
+  // Compute scale to fit the SVG (120×120, with 8px padding)
+  const W = 120, H = 120, pad = 8;
+  const cellW = (W - 2*pad) / Math.max(cols, 5);
+  const cellH = (H - 2*pad) / Math.max(rows, 5);
+  const cellSize = Math.min(cellW, cellH);
+  const offsetX = (W - cols * cellSize) / 2;
+  const offsetY = (H - rows * cellSize) / 2;
+
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      // For top view: i is x, j is z. Display j as the y-axis (top to bottom = front to back)
+      // For front/side views: i is the horizontal axis, j is the height (so we need to flip vertically)
+      const filled = grid[i][j];
+      let displayY;
+      if (svgId === 'view-top') {
+        displayY = offsetY + j * cellSize;
+      } else {
+        // Flip vertically: y=0 is at the bottom
+        displayY = offsetY + (rows - 1 - j) * cellSize;
+      }
+      const displayX = offsetX + i * cellSize;
+
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', displayX);
+      rect.setAttribute('y', displayY);
+      rect.setAttribute('width', cellSize);
+      rect.setAttribute('height', cellSize);
+      rect.setAttribute('fill', filled ? color : '#ffffff');
+      rect.setAttribute('stroke', filled ? accent : '#ECEFF1');
+      rect.setAttribute('stroke-width', '1');
+      svg.appendChild(rect);
+    }
+  }
+}
+
+function renderViews() {
+  renderViewSvg('view-top',   getTopView(),         '#D5E8E2', '#0E6655');
+  const fv = getFrontView();
+  renderViewSvg('view-front', fv.grid,              '#E8DAEF', '#6C3483');
+  const sv = getSideView();
+  renderViewSvg('view-side',  sv.grid,              '#F4ECC6', '#B7950B');
+}
+
+// ════════════════════════════════════════════════════════
+// ISOMETRIC 3D VIEW
+// ════════════════════════════════════════════════════════
+const ISO_SCALE = 22;
+const ISO_COS30 = Math.cos(Math.PI / 6);
+const ISO_SIN30 = Math.sin(Math.PI / 6);
+
+// Project 3D world coordinates to 2D screen coordinates
+function isoProject(x, y, z) {
+  const sx = (x - z) * ISO_COS30 * ISO_SCALE;
+  const sy = ((x + z) * ISO_SIN30 - y) * ISO_SCALE;
+  return [sx, sy];
+}
+
+function renderIso() {
+  const svg = document.getElementById('iso-view');
+  svg.innerHTML = '';
+  const W = 380, H = 280;
+
+  // Compute total cubes and find center for translation
+  let totalCubes = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      totalCubes += heights[x][z];
+    }
+  }
+
+  if (totalCubes === 0) {
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', W/2);
+    text.setAttribute('y', H/2);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '14');
+    text.setAttribute('fill', '#566573');
+    text.setAttribute('font-style', 'italic');
+    text.textContent = 'Click cells on the left to build a structure.';
+    svg.appendChild(text);
+    return;
+  }
+
+  // Center the structure: compute bounding box of all cube vertices in screen space
+  let minSx = Infinity, maxSx = -Infinity, minSy = Infinity, maxSy = -Infinity;
+  for (let x = 0; x <= GRID_SIZE; x++) {
+    for (let z = 0; z <= GRID_SIZE; z++) {
+      for (let y = 0; y <= 6; y++) {
+        const [sx, sy] = isoProject(x, y, z);
+        if (sx < minSx) minSx = sx;
+        if (sx > maxSx) maxSx = sx;
+        if (sy < minSy) minSy = sy;
+        if (sy > maxSy) maxSy = sy;
+      }
+    }
+  }
+  const cx = (minSx + maxSx) / 2;
+  const cy = (minSy + maxSy) / 2;
+  const offsetX = W / 2 - cx;
+  const offsetY = H / 2 - cy;
+
+  // Collect all cube positions
+  const cubes = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      for (let y = 0; y < heights[x][z]; y++) {
+        cubes.push([x, y, z]);
+      }
+    }
+  }
+
+  // Sort cubes back-to-front for painter's algorithm
+  // In isometric: a cube at (x, y, z) is "in front of" cube (x', y', z') if:
+  //   x > x' OR z > z' OR y < y'
+  // Better: sort by depth = (x + z - y) — larger = further from camera... actually
+  // for our isometric projection, painter's order is: lower x, lower z, lower y first
+  // (cubes farther from the camera are drawn first; closer cubes drawn on top)
+  // The camera looks from +x, +y, +z direction. So distance from camera ~ -(x + y + z)
+  // Sort ascending by (x + y + z) means we draw furthest first
+  // But for our isometric where camera is at +x, -z, +y... let me just try
+  // depth = -(x + y + z), draw smaller (more negative) first
+  // Actually for our standard isometric (looking from front-right-top):
+  // larger x = closer (front-right), larger y = closer (top), smaller z = closer (front)
+  // depth ranking (ascending = farther first): -(x + y) + z
+  cubes.sort((a, b) => {
+    const da = -(a[0] + a[1]) + a[2];
+    const db = -(b[0] + b[1]) + b[2];
+    return db - da;  // farther (larger depth value... wait)
+  });
+  // Simpler: draw in order of (z descending, x ascending, y ascending)
+  cubes.sort((a, b) => {
+    if (a[2] !== b[2]) return b[2] - a[2];  // higher z first (back)
+    if (a[0] !== b[0]) return a[0] - b[0];  // lower x first (left)
+    return a[1] - b[1];                      // lower y first (bottom)
+  });
+
+  // Draw each cube
+  cubes.forEach(([x, y, z]) => {
+    drawCube(svg, x, y, z, offsetX, offsetY);
+  });
+}
+
+function drawCube(svg, x, y, z, offsetX, offsetY) {
+  // 8 vertices of the unit cube at (x, y, z)
+  const v = [
+    isoProject(x,   y,   z  ),  // 0: bottom-front-left
+    isoProject(x+1, y,   z  ),  // 1: bottom-front-right
+    isoProject(x+1, y,   z+1),  // 2: bottom-back-right
+    isoProject(x,   y,   z+1),  // 3: bottom-back-left
+    isoProject(x,   y+1, z  ),  // 4: top-front-left
+    isoProject(x+1, y+1, z  ),  // 5: top-front-right
+    isoProject(x+1, y+1, z+1),  // 6: top-back-right
+    isoProject(x,   y+1, z+1),  // 7: top-back-left
+  ];
+
+  // Translate to screen
+  const sv = v.map(p => [p[0] + offsetX, p[1] + offsetY]);
+
+  // Three visible faces in isometric: top, front, right
+  // Top face: vertices 4, 5, 6, 7 (lightest)
+  // Front face: vertices 0, 1, 5, 4 (medium)
+  // Right face: vertices 1, 2, 6, 5 (darkest)
+  const faces = [
+    { verts: [4, 5, 6, 7], fill: '#A6D0C2', stroke: '#0E6655' },  // top — light teal
+    { verts: [0, 1, 5, 4], fill: '#7BB89F', stroke: '#0E6655' },  // front — medium
+    { verts: [1, 2, 6, 5], fill: '#4F9F7C', stroke: '#0E6655' },  // right — darker
+  ];
+
+  faces.forEach(f => {
+    const points = f.verts.map(i => `${sv[i][0]},${sv[i][1]}`).join(' ');
+    const poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', points);
+    poly.setAttribute('fill', f.fill);
+    poly.setAttribute('stroke', f.stroke);
+    poly.setAttribute('stroke-width', '1.2');
+    poly.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(poly);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// MASTER RENDER
+// ════════════════════════════════════════════════════════
+function renderAll() {
+  renderBuildGrid();
+  renderViews();
+  renderIso();
+
+  // Update stats
+  let total = 0;
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      total += heights[x][z];
+    }
+  }
+  document.getElementById('cube-count').textContent = total;
+}
+
+// ════════════════════════════════════════════════════════
+// PRESETS
+// ════════════════════════════════════════════════════════
+function clearGrid() {
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let z = 0; z < GRID_SIZE; z++) {
+      heights[x][z] = 0;
+    }
+  }
+}
+
+function applyPreset(name) {
+  clearGrid();
+  if (name === 'row') {
+    // 4 cubes in a row along the x axis (front edge)
+    heights[0][2] = 1;
+    heights[1][2] = 1;
+    heights[2][2] = 1;
+    heights[3][2] = 1;
+  } else if (name === 'L4') {
+    // 4-cube L: 3 in a row + 1 on top of leftmost
+    heights[0][2] = 2;  // tall column at the leftmost — 2 cubes stacked
+    heights[1][2] = 1;
+    heights[2][2] = 1;
+  } else if (name === 'L3') {
+    // 3-cube L: 2 in a row + 1 on top of leftmost
+    heights[0][2] = 2;
+    heights[1][2] = 1;
+  } else if (name === 'staircase') {
+    // 3-step staircase
+    heights[0][2] = 1;
+    heights[1][2] = 2;
+    heights[2][2] = 3;
+  } else if (name === 'tower') {
+    // Tower of 4 cubes plus a side branch
+    heights[2][2] = 4;
+    heights[3][2] = 1;
+  }
+  renderAll();
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+});
+document.getElementById('clear-btn').addEventListener('click', () => {
+  clearGrid();
+  renderAll();
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+applyPreset('L4');  // Start with the day's signature problem
+</script>
+
+</body>
+</html>

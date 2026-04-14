@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 17 — Cylinder Unroller</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .controls {
+    background: var(--offwhite);
+    padding: 14px 16px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .control-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .control-row:last-child { margin-bottom: 0; }
+  .control-row label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+    min-width: 110px;
+  }
+  .control-row .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purp);
+    min-width: 55px;
+  }
+  .control-row input[type="range"] {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .type-toggle {
+    display: flex; gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .type-btn {
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--slate); font-family: inherit;
+  }
+  .type-btn:hover { background: var(--light-grey); }
+  .type-btn.active.closed { background: var(--teal); color: white; border-color: var(--teal); }
+  .type-btn.active.open-top { background: var(--purp); color: white; border-color: var(--purp); }
+  .type-btn.active.pipe { background: var(--gold); color: white; border-color: var(--gold); }
+
+  .canvas-area {
+    background: linear-gradient(180deg, #f8fafb 0%, #e8edf0 100%);
+    border: 2px solid var(--grey);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+  .canvas-area svg { display: block; margin: 0 auto; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+  .stat-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--grey);
+    text-align: left;
+  }
+  .stat-card.circles { border-left-color: var(--purp); }
+  .stat-card.rect { border-left-color: var(--gold); }
+  .stat-card.total { border-left-color: var(--teal); }
+  .stat-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--grey);
+  }
+  .stat-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .stat-card.circles .value { color: var(--purp); }
+  .stat-card.rect .value { color: var(--gold); }
+  .stat-card.total .value { color: var(--teal); }
+  .stat-card .unit {
+    font-size: 12px;
+    color: var(--grey);
+    margin-left: 4px;
+  }
+  .stat-card .formula {
+    font-size: 10px;
+    color: var(--grey);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  .formula-card {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: var(--slate);
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .formula-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .formula-card .formula {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #F4ECC6;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Cylinder Unroller</h1>
+  <span class="badge">CYCLE 9 • DAY 17 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Peel the Label. Watch It Flatten.</h2>
+    <p class="instruction">Drag the UNROLL slider to watch the cylinder's curved side unroll into a flat rectangle. Adjust the radius and height to see how the net changes. Pick a cylinder type (closed, open-top, pipe) to see how many circles you need.</p>
+
+    <div class="controls">
+      <div class="control-row">
+        <label>Radius (r):</label>
+        <span class="value" id="r-display">4</span>
+        <input type="range" id="r-slider" min="1" max="10" step="0.5" value="4">
+        <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+      </div>
+      <div class="control-row">
+        <label>Height (h):</label>
+        <span class="value" id="h-display">10</span>
+        <input type="range" id="h-slider" min="1" max="20" step="0.5" value="10">
+        <span style="font-size:11px;color:var(--grey);font-weight:700">cm</span>
+      </div>
+      <div class="control-row">
+        <label>Unroll:</label>
+        <span class="value" id="unroll-display">0%</span>
+        <input type="range" id="unroll-slider" min="0" max="100" step="1" value="0">
+      </div>
+      <div class="control-row">
+        <label>Cylinder type:</label>
+        <div class="type-toggle">
+          <button class="type-btn closed active" data-type="closed">Closed (2 circles)</button>
+          <button class="type-btn open-top" data-type="open-top">Open-top (1 circle)</button>
+          <button class="type-btn pipe" data-type="pipe">Pipe (0 circles)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-area">
+      <svg id="canvas" width="700" height="360" viewBox="0 0 700 360"></svg>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card circles">
+        <div class="label">Circles (top + bottom)</div>
+        <div class="value" id="circles-val">100.5<span class="unit">cm²</span></div>
+        <div class="formula" id="circles-formula">2 × π × r² = 2 × 3.14 × 16</div>
+      </div>
+      <div class="stat-card rect">
+        <div class="label">Rectangle (lateral)</div>
+        <div class="value" id="rect-val">251.2<span class="unit">cm²</span></div>
+        <div class="formula" id="rect-formula">2πr × h = 2 × 3.14 × 4 × 10</div>
+      </div>
+      <div class="stat-card total">
+        <div class="label">Total Surface Area</div>
+        <div class="value" id="total-val">351.7<span class="unit">cm²</span></div>
+        <div class="formula">sum of pieces</div>
+      </div>
+    </div>
+
+    <div class="formula-card">
+      <div class="label" id="formula-label">Closed cylinder surface area</div>
+      <div class="formula" id="formula-text">SA = 2πr² + 2πrh</div>
+    </div>
+
+    <div class="insight-box">
+      <strong>Why does the rectangle have width 2πr?</strong> When you unroll the curved side of the cylinder, the top edge (the rim of the top circle) becomes the top of the rectangle. The top edge of the cylinder IS the circumference of the base circle, which is 2πr. So the rectangle's width is 2πr. Its height is just h — the cylinder doesn't get taller or shorter when you unroll it, just flatter. That's why SA = 2πr² (the circles) + 2πrh (the rectangle).
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════
+const PI = 3.14;
+const NS = 'http://www.w3.org/2000/svg';
+
+const W = 700, H = 360;
+const canvas = document.getElementById('canvas');
+
+// State
+let radiusCm = 4;
+let heightCm = 10;
+let unrollProgress = 0;  // 0 = full cylinder, 1 = fully unrolled
+let cylinderType = 'closed';  // 'closed', 'open-top', 'pipe'
+
+// ════════════════════════════════════════════════════════
+// MATH
+// ════════════════════════════════════════════════════════
+function computeSA() {
+  const circleArea = PI * radiusCm * radiusCm;
+  const rectArea = 2 * PI * radiusCm * heightCm;
+
+  let nCircles;
+  if (cylinderType === 'closed') nCircles = 2;
+  else if (cylinderType === 'open-top') nCircles = 1;
+  else nCircles = 0;  // pipe
+
+  const circlesTotal = nCircles * circleArea;
+  const total = circlesTotal + rectArea;
+
+  return {
+    nCircles,
+    circleArea,
+    circlesTotal,
+    rectArea,
+    total,
+  };
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function render() {
+  canvas.innerHTML = '';
+
+  // Scale pixels — fit within the canvas
+  // Max: r = 10 cm, h = 20 cm
+  // Canvas: 700 × 360
+  // For the unrolled rectangle: width = 2πr (max ≈ 62.83), height = h (max 20)
+  //   We want this to fit in at most ~600px wide, ~200px tall
+  // Scale: ~10 px per cm (adjusted)
+  const scale = 9;  // pixels per cm
+
+  const pxR = radiusCm * scale;      // cylinder radius in px
+  const pxH = heightCm * scale;       // cylinder height in px
+  const pxCirc = 2 * PI * radiusCm * scale;  // full rectangle width in px
+
+  // Layout: cylinder on the left, rectangle unrolls to the right
+  // Center the whole thing
+  // The full unrolled width is pxCirc + (2 * pxR for the two circles) + spacing
+  // At unroll=0, just show the cylinder in center
+  // At unroll=1, show: cylinder | rectangle | 2 circles (side by side)
+
+  // Cylinder position (always on the left, stays put as unroll happens)
+  const cylCx = 120;
+  const cylCy = H / 2;
+
+  // Draw ellipses/bottom first (background)
+  drawCylinder(cylCx, cylCy, pxR, pxH, unrollProgress);
+
+  // Draw the unrolling rectangle to the right of the cylinder
+  // At unroll=0, rectangle is "inside" the cylinder (invisible)
+  // At unroll=1, rectangle is fully extended to the right
+  drawRectangle(cylCx + pxR, cylCy - pxH/2, pxCirc, pxH, unrollProgress);
+
+  // Draw the circles (for closed or open-top) to the right of the rectangle
+  const rectRight = cylCx + pxR + pxCirc * unrollProgress;
+  drawCircles(rectRight + 20, cylCy, pxR, unrollProgress);
+}
+
+function drawCylinder(cx, cy, pxR, pxH, unrollProgress) {
+  // Draw the cylinder as:
+  //   - bottom ellipse (always visible)
+  //   - left and right vertical edges
+  //   - top ellipse (solid if closed, dashed if open-top or pipe)
+  //   - bottom ellipse (solid if closed or open-top, dashed if pipe)
+  //
+  // The side face (2D rectangle representation) fades as unrollProgress → 1
+  // because the "skin" is leaving the cylinder.
+
+  const topY = cy - pxH / 2;
+  const botY = cy + pxH / 2;
+  const ellipseHalfH = Math.max(4, pxR * 0.25);  // visual height of the ellipse
+
+  // Cylinder body fill (teal, fades as unroll progresses)
+  const bodyOpacity = Math.max(0, 1 - unrollProgress);
+  if (bodyOpacity > 0) {
+    // The cylindrical side (as a filled rectangle)
+    const body = document.createElementNS(NS, 'rect');
+    body.setAttribute('x', cx - pxR);
+    body.setAttribute('y', topY);
+    body.setAttribute('width', 2 * pxR);
+    body.setAttribute('height', pxH);
+    body.setAttribute('fill', '#D5E8E2');
+    body.setAttribute('fill-opacity', bodyOpacity * 0.9);
+    body.setAttribute('stroke', 'none');
+    canvas.appendChild(body);
+  }
+
+  // Left and right edges of the cylinder (vertical lines) — dim as unroll progresses
+  const edgeOpacity = Math.max(0.3, 1 - unrollProgress);
+  const leftEdge = document.createElementNS(NS, 'line');
+  leftEdge.setAttribute('x1', cx - pxR);
+  leftEdge.setAttribute('y1', topY);
+  leftEdge.setAttribute('x2', cx - pxR);
+  leftEdge.setAttribute('y2', botY);
+  leftEdge.setAttribute('stroke', '#0E6655');
+  leftEdge.setAttribute('stroke-width', 2);
+  leftEdge.setAttribute('stroke-opacity', edgeOpacity);
+  canvas.appendChild(leftEdge);
+
+  const rightEdge = document.createElementNS(NS, 'line');
+  rightEdge.setAttribute('x1', cx + pxR);
+  rightEdge.setAttribute('y1', topY);
+  rightEdge.setAttribute('x2', cx + pxR);
+  rightEdge.setAttribute('y2', botY);
+  rightEdge.setAttribute('stroke', '#0E6655');
+  rightEdge.setAttribute('stroke-width', 2);
+  rightEdge.setAttribute('stroke-opacity', edgeOpacity);
+  canvas.appendChild(rightEdge);
+
+  // Top ellipse — solid if closed, dashed if not
+  const topEllipse = document.createElementNS(NS, 'ellipse');
+  topEllipse.setAttribute('cx', cx);
+  topEllipse.setAttribute('cy', topY);
+  topEllipse.setAttribute('rx', pxR);
+  topEllipse.setAttribute('ry', ellipseHalfH);
+  topEllipse.setAttribute('fill', cylinderType === 'closed' ? '#E8DAEF' : '#FFFFFF');
+  topEllipse.setAttribute('fill-opacity', cylinderType === 'closed' ? Math.max(0.3, 1 - unrollProgress) : 0);
+  topEllipse.setAttribute('stroke', '#6C3483');
+  topEllipse.setAttribute('stroke-width', 2);
+  if (cylinderType !== 'closed') {
+    topEllipse.setAttribute('stroke-dasharray', '5,3');
+    topEllipse.setAttribute('stroke-opacity', 0.6);
+  }
+  canvas.appendChild(topEllipse);
+
+  // Bottom ellipse — solid if closed or open-top, dashed if pipe
+  const botEllipse = document.createElementNS(NS, 'ellipse');
+  botEllipse.setAttribute('cx', cx);
+  botEllipse.setAttribute('cy', botY);
+  botEllipse.setAttribute('rx', pxR);
+  botEllipse.setAttribute('ry', ellipseHalfH);
+  botEllipse.setAttribute('fill', cylinderType !== 'pipe' ? '#E8DAEF' : '#FFFFFF');
+  botEllipse.setAttribute('fill-opacity', cylinderType !== 'pipe' ? Math.max(0.3, 1 - unrollProgress) : 0);
+  botEllipse.setAttribute('stroke', '#6C3483');
+  botEllipse.setAttribute('stroke-width', 2);
+  if (cylinderType === 'pipe') {
+    botEllipse.setAttribute('stroke-dasharray', '5,3');
+    botEllipse.setAttribute('stroke-opacity', 0.6);
+  }
+  canvas.appendChild(botEllipse);
+
+  // Label the cylinder (only when fully rolled)
+  if (unrollProgress < 0.3) {
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('x', cx);
+    label.setAttribute('y', botY + 25);
+    label.setAttribute('font-size', '12');
+    label.setAttribute('font-weight', '700');
+    label.setAttribute('fill', '#0E6655');
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('opacity', 1 - unrollProgress * 3.33);
+    label.textContent = 'cylinder';
+    canvas.appendChild(label);
+
+    // Also show r and h labels
+    const rLabel = document.createElementNS(NS, 'text');
+    rLabel.setAttribute('x', cx);
+    rLabel.setAttribute('y', cy - pxH / 2 - ellipseHalfH - 8);
+    rLabel.setAttribute('font-size', '11');
+    rLabel.setAttribute('font-weight', '700');
+    rLabel.setAttribute('fill', '#6C3483');
+    rLabel.setAttribute('text-anchor', 'middle');
+    rLabel.setAttribute('opacity', 1 - unrollProgress * 3.33);
+    rLabel.textContent = `r = ${radiusCm}`;
+    canvas.appendChild(rLabel);
+
+    const hLabel = document.createElementNS(NS, 'text');
+    hLabel.setAttribute('x', cx - pxR - 15);
+    hLabel.setAttribute('y', cy + 4);
+    hLabel.setAttribute('font-size', '11');
+    hLabel.setAttribute('font-weight', '700');
+    hLabel.setAttribute('fill', '#B7950B');
+    hLabel.setAttribute('text-anchor', 'end');
+    hLabel.setAttribute('opacity', 1 - unrollProgress * 3.33);
+    hLabel.textContent = `h = ${heightCm}`;
+    canvas.appendChild(hLabel);
+  }
+}
+
+function drawRectangle(startX, startY, fullWidth, pxH, unrollProgress) {
+  // The rectangle "unrolls" to the right as progress increases
+  const currentWidth = fullWidth * unrollProgress;
+  if (currentWidth < 1) return;  // too small to draw
+
+  // Rectangle background (gold-ish to match the "lateral surface" color)
+  const rect = document.createElementNS(NS, 'rect');
+  rect.setAttribute('x', startX);
+  rect.setAttribute('y', startY);
+  rect.setAttribute('width', currentWidth);
+  rect.setAttribute('height', pxH);
+  rect.setAttribute('fill', '#F4ECC6');
+  rect.setAttribute('stroke', '#B7950B');
+  rect.setAttribute('stroke-width', 2);
+  canvas.appendChild(rect);
+
+  // Label it when mostly unrolled
+  if (unrollProgress > 0.5) {
+    const labelY = startY + pxH / 2;
+    const labelX = startX + currentWidth / 2;
+
+    const rectLabel = document.createElementNS(NS, 'text');
+    rectLabel.setAttribute('x', labelX);
+    rectLabel.setAttribute('y', labelY - 8);
+    rectLabel.setAttribute('font-size', '12');
+    rectLabel.setAttribute('font-weight', '700');
+    rectLabel.setAttribute('fill', '#B7950B');
+    rectLabel.setAttribute('text-anchor', 'middle');
+    rectLabel.setAttribute('opacity', (unrollProgress - 0.5) * 2);
+    rectLabel.textContent = 'RECTANGLE';
+    canvas.appendChild(rectLabel);
+
+    if (unrollProgress > 0.75) {
+      const dimLabel = document.createElementNS(NS, 'text');
+      dimLabel.setAttribute('x', labelX);
+      dimLabel.setAttribute('y', labelY + 8);
+      dimLabel.setAttribute('font-size', '10');
+      dimLabel.setAttribute('fill', '#2C3E50');
+      dimLabel.setAttribute('text-anchor', 'middle');
+      dimLabel.setAttribute('opacity', (unrollProgress - 0.75) * 4);
+      dimLabel.textContent = `2πr × h = ${(2 * PI * radiusCm).toFixed(1)} × ${heightCm}`;
+      canvas.appendChild(dimLabel);
+    }
+
+    // Width label at the bottom when fully unrolled
+    if (unrollProgress > 0.9) {
+      const widthLabel = document.createElementNS(NS, 'text');
+      widthLabel.setAttribute('x', labelX);
+      widthLabel.setAttribute('y', startY + pxH + 18);
+      widthLabel.setAttribute('font-size', '10');
+      widthLabel.setAttribute('font-weight', '700');
+      widthLabel.setAttribute('fill', '#B7950B');
+      widthLabel.setAttribute('text-anchor', 'middle');
+      widthLabel.setAttribute('opacity', (unrollProgress - 0.9) * 10);
+      widthLabel.textContent = `width = 2πr ≈ ${(2 * PI * radiusCm).toFixed(1)} cm`;
+      canvas.appendChild(widthLabel);
+
+      // Height label on left side of rectangle
+      const heightLabel = document.createElementNS(NS, 'text');
+      heightLabel.setAttribute('x', startX - 5);
+      heightLabel.setAttribute('y', labelY + 4);
+      heightLabel.setAttribute('font-size', '10');
+      heightLabel.setAttribute('font-weight', '700');
+      heightLabel.setAttribute('fill', '#B7950B');
+      heightLabel.setAttribute('text-anchor', 'end');
+      heightLabel.setAttribute('opacity', (unrollProgress - 0.9) * 10);
+      heightLabel.textContent = `h = ${heightCm}`;
+      canvas.appendChild(heightLabel);
+    }
+  }
+}
+
+function drawCircles(startX, cy, pxR, unrollProgress) {
+  if (unrollProgress < 0.7) return;  // only show circles when mostly unrolled
+
+  const opacity = (unrollProgress - 0.7) * 3.33;
+  const nCircles = cylinderType === 'closed' ? 2 : (cylinderType === 'open-top' ? 1 : 0);
+  if (nCircles === 0) return;
+
+  for (let i = 0; i < nCircles; i++) {
+    const cx = startX + (i * (2 * pxR + 15)) + pxR;
+    if (cx + pxR > W - 10) break;  // don't draw outside canvas
+
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('cx', cx);
+    circle.setAttribute('cy', cy);
+    circle.setAttribute('r', pxR);
+    circle.setAttribute('fill', '#E8DAEF');
+    circle.setAttribute('fill-opacity', opacity);
+    circle.setAttribute('stroke', '#6C3483');
+    circle.setAttribute('stroke-width', 2);
+    circle.setAttribute('stroke-opacity', opacity);
+    canvas.appendChild(circle);
+
+    // Label top and bottom
+    if (unrollProgress > 0.85) {
+      const label = document.createElementNS(NS, 'text');
+      label.setAttribute('x', cx);
+      label.setAttribute('y', cy + 4);
+      label.setAttribute('font-size', '10');
+      label.setAttribute('font-weight', '700');
+      label.setAttribute('fill', '#6C3483');
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('opacity', (unrollProgress - 0.85) * 6.67);
+      if (nCircles === 2) {
+        label.textContent = i === 0 ? 'TOP' : 'BOTTOM';
+      } else {
+        label.textContent = 'BOTTOM';
+      }
+      canvas.appendChild(label);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  document.getElementById('r-display').textContent = radiusCm;
+  document.getElementById('h-display').textContent = heightCm;
+  document.getElementById('unroll-display').textContent = `${Math.round(unrollProgress * 100)}%`;
+
+  const stats = computeSA();
+
+  document.getElementById('circles-val').innerHTML =
+    `${stats.circlesTotal.toFixed(2)}<span class="unit">cm²</span>`;
+  document.getElementById('rect-val').innerHTML =
+    `${stats.rectArea.toFixed(2)}<span class="unit">cm²</span>`;
+  document.getElementById('total-val').innerHTML =
+    `${stats.total.toFixed(2)}<span class="unit">cm²</span>`;
+
+  // Update formula text
+  if (stats.nCircles === 2) {
+    document.getElementById('circles-formula').textContent =
+      `2 × π × r² = 2 × 3.14 × ${radiusCm * radiusCm}`;
+  } else if (stats.nCircles === 1) {
+    document.getElementById('circles-formula').textContent =
+      `1 × π × r² = 3.14 × ${radiusCm * radiusCm}`;
+  } else {
+    document.getElementById('circles-formula').textContent = '0 circles (pipe)';
+  }
+
+  document.getElementById('rect-formula').textContent =
+    `2πr × h = 2 × 3.14 × ${radiusCm} × ${heightCm}`;
+
+  // Update the main formula label
+  const labels = {
+    'closed': ['Closed cylinder surface area', 'SA = 2πr² + 2πrh'],
+    'open-top': ['Open-top cylinder surface area', 'SA = πr² + 2πrh'],
+    'pipe': ['Pipe (open both ends) surface area', 'SA = 2πrh'],
+  };
+  const [labelText, formulaText] = labels[cylinderType];
+  document.getElementById('formula-label').textContent = labelText;
+  document.getElementById('formula-text').textContent = formulaText;
+
+  render();
+}
+
+// ════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ════════════════════════════════════════════════════════
+document.getElementById('r-slider').addEventListener('input', (e) => {
+  radiusCm = parseFloat(e.target.value);
+  update();
+});
+document.getElementById('h-slider').addEventListener('input', (e) => {
+  heightCm = parseFloat(e.target.value);
+  update();
+});
+document.getElementById('unroll-slider').addEventListener('input', (e) => {
+  unrollProgress = parseFloat(e.target.value) / 100;
+  update();
+});
+
+document.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    cylinderType = btn.dataset.type;
+    document.querySelectorAll('.type-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+    });
+    update();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+update();
+</script>
+
+</body>
+</html>

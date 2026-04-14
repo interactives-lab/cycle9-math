@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 9 Day 16 — Pizza Comparator</title>
+<style>
+  :root {
+    --slate: #2C3E50;
+    --teal: #0E6655;
+    --purp: #6C3483;
+    --gold: #B7950B;
+    --green: #1E8449;
+    --coral: #C0392B;
+    --offwhite: #F4F6F7;
+    --light-teal: #D5E8E2;
+    --light-purp: #E8DAEF;
+    --light-gold: #F4ECC6;
+    --light-green: #D5EEDD;
+    --light-coral: #F5D9D4;
+    --light-grey: #ECEFF1;
+    --grey: #566573;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--offwhite); color: var(--slate);
+  }
+  .header {
+    background: var(--teal); color: white;
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 4px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--teal); padding-bottom: 6px;
+  }
+  .instruction {
+    font-size: 12px; color: var(--slate);
+    margin-bottom: 12px; line-height: 1.5; font-style: italic;
+  }
+
+  .mode-toggle {
+    display: flex; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1;
+    background: white;
+    border: 1.5px solid var(--grey);
+    padding: 10px 16px;
+    border-radius: 4px; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    color: var(--slate); font-family: inherit;
+  }
+  .mode-btn:hover { background: var(--light-grey); }
+  .mode-btn.active.pizza { background: var(--purp); color: white; border-color: var(--purp); }
+  .mode-btn.active.sprinkler { background: var(--gold); color: white; border-color: var(--gold); }
+
+  .pizza-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 700px) {
+    .pizza-grid { grid-template-columns: 1fr; }
+  }
+  .pizza-card {
+    background: var(--offwhite);
+    border-radius: 4px;
+    padding: 14px;
+    border: 2px solid var(--grey);
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .pizza-card.winner {
+    background: var(--light-green);
+    border-color: var(--green);
+    border-width: 3px;
+  }
+  .pizza-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey);
+  }
+  .pizza-card .input-row {
+    display: flex; gap: 8px; margin-bottom: 10px;
+    align-items: center; justify-content: center;
+  }
+  .pizza-card .input-row label {
+    font-size: 11px; font-weight: 700; color: var(--grey);
+    min-width: 60px; text-align: right;
+  }
+  .pizza-card .input-row input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1.5px solid var(--grey);
+    border-radius: 3px;
+    font-size: 14px; font-weight: 700;
+    text-align: center;
+    font-family: inherit;
+  }
+  .pizza-card .input-row input:focus {
+    outline: none; border-color: var(--purp);
+  }
+  .pizza-card .input-row .unit {
+    font-size: 11px; font-weight: 700; color: var(--grey);
+    min-width: 30px; text-align: left;
+  }
+  .pizza-card svg {
+    display: block; margin: 8px auto;
+  }
+  .pizza-card .stats {
+    font-size: 11px; color: var(--slate);
+    margin-top: 8px;
+    text-align: left;
+    line-height: 1.6;
+  }
+  .pizza-card .stats .label {
+    color: var(--grey);
+    font-weight: 700;
+  }
+  .pizza-card .stats .value {
+    color: var(--slate);
+    font-weight: 700;
+  }
+  .pizza-card .cost-per {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purp);
+    margin-top: 6px;
+  }
+  .pizza-card.winner .cost-per { color: var(--green); }
+  .pizza-card.winner .badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 10px;
+    background: var(--green);
+    color: white;
+    border-radius: 3px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .verdict {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: var(--slate);
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .verdict .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .verdict .text {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .verdict .text .win {
+    color: #F4ECC6;
+  }
+
+  .preset-btns {
+    display: flex; gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .preset-btn {
+    background: var(--light-purp);
+    border: 1px solid var(--purp);
+    padding: 5px 10px; border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--purp); font-family: inherit;
+  }
+  .preset-btn:hover { background: var(--purp); color: white; }
+  .preset-btn.gold { background: var(--light-gold); border-color: var(--gold); color: var(--gold); }
+  .preset-btn.gold:hover { background: var(--gold); color: white; }
+
+  /* Sprinkler mode */
+  .sprinkler-panel {
+    display: none;
+  }
+  .sprinkler-panel.active {
+    display: block;
+  }
+  .pizza-panel.hidden {
+    display: none;
+  }
+
+  .insight-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--light-coral);
+    border-left: 4px solid var(--coral);
+    border-radius: 4px;
+    font-size: 12px; color: var(--slate);
+    line-height: 1.6;
+  }
+  .insight-box strong { color: var(--coral); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pizza Comparator</h1>
+  <span class="badge">CYCLE 9 • DAY 16 • INTERACTIVE</span>
+</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Pick Your Mode</h2>
+    <p class="instruction">Two modes: compare two PIZZAS by cost per cm², or compare two SPRINKLER configurations by total area coverage.</p>
+
+    <div class="mode-toggle">
+      <button class="mode-btn pizza active" data-mode="pizza">Compare Pizzas</button>
+      <button class="mode-btn sprinkler" data-mode="sprinkler">Compare Sprinklers</button>
+    </div>
+
+    <!-- PIZZA MODE -->
+    <div class="pizza-panel" id="pizza-panel">
+      <p class="instruction">Type each pizza's diameter and price. The winner is the one with LOWER cost per cm² — you get more pizza per dollar.</p>
+
+      <div class="pizza-grid">
+        <div class="pizza-card" id="pizza-a">
+          <h3>Pizza A</h3>
+          <div class="input-row">
+            <label>Diameter:</label>
+            <input type="number" id="pa-d" value="30" min="1" max="100" step="1">
+            <span class="unit">cm</span>
+          </div>
+          <div class="input-row">
+            <label>Price:</label>
+            <input type="number" id="pa-p" value="15" min="0.01" max="1000" step="0.01">
+            <span class="unit">$</span>
+          </div>
+          <svg id="pa-svg" width="140" height="140" viewBox="0 0 140 140"></svg>
+          <div class="stats">
+            <div><span class="label">Radius:</span> <span class="value" id="pa-r">15.0 cm</span></div>
+            <div><span class="label">r²:</span> <span class="value" id="pa-r2">225</span></div>
+            <div><span class="label">Area:</span> <span class="value" id="pa-area">706.5 cm²</span></div>
+          </div>
+          <div class="cost-per" id="pa-cost">$0.0212/cm²</div>
+          <div class="badge" id="pa-badge" style="display:none">BETTER DEAL</div>
+        </div>
+
+        <div class="pizza-card" id="pizza-b">
+          <h3>Pizza B</h3>
+          <div class="input-row">
+            <label>Diameter:</label>
+            <input type="number" id="pb-d" value="40" min="1" max="100" step="1">
+            <span class="unit">cm</span>
+          </div>
+          <div class="input-row">
+            <label>Price:</label>
+            <input type="number" id="pb-p" value="25" min="0.01" max="1000" step="0.01">
+            <span class="unit">$</span>
+          </div>
+          <svg id="pb-svg" width="140" height="140" viewBox="0 0 140 140"></svg>
+          <div class="stats">
+            <div><span class="label">Radius:</span> <span class="value" id="pb-r">20.0 cm</span></div>
+            <div><span class="label">r²:</span> <span class="value" id="pb-r2">400</span></div>
+            <div><span class="label">Area:</span> <span class="value" id="pb-area">1256.0 cm²</span></div>
+          </div>
+          <div class="cost-per" id="pb-cost">$0.0199/cm²</div>
+          <div class="badge" id="pb-badge" style="display:none">BETTER DEAL</div>
+        </div>
+      </div>
+
+      <div class="verdict" id="pizza-verdict">
+        <div class="label">Verdict</div>
+        <div class="text"><span class="win">Pizza B</span> is the better deal — you save about 6% per cm²</div>
+      </div>
+
+      <div class="preset-btns">
+        <button class="preset-btn" data-preset="curriculum">Curriculum: 30/$15 vs 40/$25</button>
+        <button class="preset-btn" data-preset="exit">Exit ticket: 40 cm / $20 vs 40/$25</button>
+        <button class="preset-btn" data-preset="surprise">Surprise: 20/$8 vs 40/$20</button>
+      </div>
+    </div>
+
+    <!-- SPRINKLER MODE -->
+    <div class="sprinkler-panel" id="sprinkler-panel">
+      <p class="instruction">Compare two sprinkler configurations. The winner covers the most total area. Try the curriculum problem: 6 small vs 2 big — the result is surprising!</p>
+
+      <div class="pizza-grid">
+        <div class="pizza-card" id="spr-a">
+          <h3>Option A</h3>
+          <div class="input-row">
+            <label>Count:</label>
+            <input type="number" id="sa-n" value="6" min="1" max="20" step="1">
+            <span class="unit">×</span>
+          </div>
+          <div class="input-row">
+            <label>Radius:</label>
+            <input type="number" id="sa-r" value="3" min="0.1" max="20" step="0.1">
+            <span class="unit">m</span>
+          </div>
+          <svg id="sa-svg" width="180" height="140" viewBox="0 0 180 140"></svg>
+          <div class="stats">
+            <div><span class="label">One sprinkler area:</span> <span class="value" id="sa-one">28.26 m²</span></div>
+            <div><span class="label">Total area:</span> <span class="value" id="sa-total">169.56 m²</span></div>
+          </div>
+          <div class="badge" id="sa-badge" style="display:none">COVERS MORE</div>
+        </div>
+
+        <div class="pizza-card" id="spr-b">
+          <h3>Option B</h3>
+          <div class="input-row">
+            <label>Count:</label>
+            <input type="number" id="sb-n" value="2" min="1" max="20" step="1">
+            <span class="unit">×</span>
+          </div>
+          <div class="input-row">
+            <label>Radius:</label>
+            <input type="number" id="sb-r" value="5" min="0.1" max="20" step="0.1">
+            <span class="unit">m</span>
+          </div>
+          <svg id="sb-svg" width="180" height="140" viewBox="0 0 180 140"></svg>
+          <div class="stats">
+            <div><span class="label">One sprinkler area:</span> <span class="value" id="sb-one">78.5 m²</span></div>
+            <div><span class="label">Total area:</span> <span class="value" id="sb-total">157.0 m²</span></div>
+          </div>
+          <div class="badge" id="sb-badge" style="display:none">COVERS MORE</div>
+        </div>
+      </div>
+
+      <div class="verdict" id="spr-verdict">
+        <div class="label">Verdict</div>
+        <div class="text"><span class="win">Option A</span> (6 small) covers 12.56 m² more than Option B (2 big)!</div>
+      </div>
+
+      <div class="preset-btns">
+        <button class="preset-btn gold" data-preset="curriculum-sprinkler">Curriculum: 6×r=3 vs 2×r=5</button>
+        <button class="preset-btn gold" data-preset="intuition">Intuition test: 4×r=4 vs 1×r=8</button>
+        <button class="preset-btn gold" data-preset="equal">Equal match: 4×r=4 vs 2×r=4√2</button>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <strong>The pizza insight (A = πr² in action):</strong> bigger pizzas almost always give more per dollar. A 14-inch pizza has 36% more area than a 12-inch. A 16-inch has 78% more than a 12-inch. This is because area scales with r² — doubling the radius gives 4× the area. Price usually grows slower than area, so bigger = better value.
+      <br><br>
+      <strong>The sprinkler insight:</strong> but more count can beat bigger radius! 6 sprinklers with r=3 cover more total area than 2 sprinklers with r=5 — because 6 × 9 = 54 beats 2 × 25 = 50 (in units of π). Count × r² is what matters, not r alone.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════
+const PI = 3.14;  // Grade 7 approximation (matches TG)
+const NS = 'http://www.w3.org/2000/svg';
+
+// ════════════════════════════════════════════════════════
+// PIZZA MODE
+// ════════════════════════════════════════════════════════
+function updatePizza() {
+  const dA = parseFloat(document.getElementById('pa-d').value) || 0;
+  const pA = parseFloat(document.getElementById('pa-p').value) || 0;
+  const dB = parseFloat(document.getElementById('pb-d').value) || 0;
+  const pB = parseFloat(document.getElementById('pb-p').value) || 0;
+
+  const rA = dA / 2;
+  const r2A = rA * rA;
+  const areaA = PI * r2A;
+  const costA = areaA > 0 ? pA / areaA : 0;
+
+  const rB = dB / 2;
+  const r2B = rB * rB;
+  const areaB = PI * r2B;
+  const costB = areaB > 0 ? pB / areaB : 0;
+
+  document.getElementById('pa-r').textContent = `${rA.toFixed(1)} cm`;
+  document.getElementById('pa-r2').textContent = r2A.toFixed(r2A === Math.floor(r2A) ? 0 : 2);
+  document.getElementById('pa-area').textContent = `${areaA.toFixed(1)} cm²`;
+  document.getElementById('pa-cost').textContent = `$${costA.toFixed(4)}/cm²`;
+
+  document.getElementById('pb-r').textContent = `${rB.toFixed(1)} cm`;
+  document.getElementById('pb-r2').textContent = r2B.toFixed(r2B === Math.floor(r2B) ? 0 : 2);
+  document.getElementById('pb-area').textContent = `${areaB.toFixed(1)} cm²`;
+  document.getElementById('pb-cost').textContent = `$${costB.toFixed(4)}/cm²`;
+
+  // Determine winner
+  const cardA = document.getElementById('pizza-a');
+  const cardB = document.getElementById('pizza-b');
+  const badgeA = document.getElementById('pa-badge');
+  const badgeB = document.getElementById('pb-badge');
+  const verdict = document.getElementById('pizza-verdict').querySelector('.text');
+
+  cardA.classList.remove('winner');
+  cardB.classList.remove('winner');
+  badgeA.style.display = 'none';
+  badgeB.style.display = 'none';
+
+  if (costA > 0 && costB > 0) {
+    if (costA < costB) {
+      cardA.classList.add('winner');
+      badgeA.style.display = 'inline-block';
+      const savings = ((costB - costA) / costB * 100).toFixed(1);
+      verdict.innerHTML = `<span class="win">Pizza A</span> is the better deal — you save about ${savings}% per cm²`;
+    } else if (costB < costA) {
+      cardB.classList.add('winner');
+      badgeB.style.display = 'inline-block';
+      const savings = ((costA - costB) / costA * 100).toFixed(1);
+      verdict.innerHTML = `<span class="win">Pizza B</span> is the better deal — you save about ${savings}% per cm²`;
+    } else {
+      verdict.innerHTML = `<span class="win">Tie!</span> Both pizzas have the same cost per cm²`;
+    }
+  }
+
+  // Render pizza visualizations
+  renderPizza('pa-svg', rA, dA);
+  renderPizza('pb-svg', rB, dB);
+}
+
+function renderPizza(svgId, radiusCm, diameterCm) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+
+  // Scale radius to fit in 140x140 canvas with margin
+  const maxDiameter = 120;
+  // Both pizzas should be on the same scale so they can be visually compared
+  // Use a fixed reference: largest reasonable diameter = 50 cm → 120 px
+  const scale = maxDiameter / 50;
+  const pxR = Math.max(15, Math.min(60, radiusCm * scale));
+  const cx = 70, cy = 70;
+
+  // Draw pizza circle (gold/brown tones to look pizza-ish)
+  const circle = document.createElementNS(NS, 'circle');
+  circle.setAttribute('cx', cx);
+  circle.setAttribute('cy', cy);
+  circle.setAttribute('r', pxR);
+  circle.setAttribute('fill', '#F4ECC6');
+  circle.setAttribute('stroke', '#B7950B');
+  circle.setAttribute('stroke-width', 3);
+  svg.appendChild(circle);
+
+  // Inner circle (crust edge)
+  const inner = document.createElementNS(NS, 'circle');
+  inner.setAttribute('cx', cx);
+  inner.setAttribute('cy', cy);
+  inner.setAttribute('r', Math.max(0, pxR - 6));
+  inner.setAttribute('fill', '#C0392B');
+  inner.setAttribute('stroke', 'none');
+  svg.appendChild(inner);
+
+  // Diameter label
+  const label = document.createElementNS(NS, 'text');
+  label.setAttribute('x', cx);
+  label.setAttribute('y', cy + 4);
+  label.setAttribute('font-size', '12');
+  label.setAttribute('font-weight', '700');
+  label.setAttribute('fill', 'white');
+  label.setAttribute('text-anchor', 'middle');
+  label.textContent = `${diameterCm} cm`;
+  svg.appendChild(label);
+}
+
+// ════════════════════════════════════════════════════════
+// SPRINKLER MODE
+// ════════════════════════════════════════════════════════
+function updateSprinkler() {
+  const nA = parseInt(document.getElementById('sa-n').value) || 0;
+  const rA = parseFloat(document.getElementById('sa-r').value) || 0;
+  const nB = parseInt(document.getElementById('sb-n').value) || 0;
+  const rB = parseFloat(document.getElementById('sb-r').value) || 0;
+
+  const oneA = PI * rA * rA;
+  const totalA = nA * oneA;
+  const oneB = PI * rB * rB;
+  const totalB = nB * oneB;
+
+  document.getElementById('sa-one').textContent = `${oneA.toFixed(2)} m²`;
+  document.getElementById('sa-total').textContent = `${totalA.toFixed(2)} m²`;
+  document.getElementById('sb-one').textContent = `${oneB.toFixed(2)} m²`;
+  document.getElementById('sb-total').textContent = `${totalB.toFixed(2)} m²`;
+
+  // Determine winner
+  const cardA = document.getElementById('spr-a');
+  const cardB = document.getElementById('spr-b');
+  const badgeA = document.getElementById('sa-badge');
+  const badgeB = document.getElementById('sb-badge');
+  const verdict = document.getElementById('spr-verdict').querySelector('.text');
+
+  cardA.classList.remove('winner');
+  cardB.classList.remove('winner');
+  badgeA.style.display = 'none';
+  badgeB.style.display = 'none';
+
+  if (totalA > 0 && totalB > 0) {
+    if (totalA > totalB) {
+      cardA.classList.add('winner');
+      badgeA.style.display = 'inline-block';
+      const diff = (totalA - totalB).toFixed(2);
+      verdict.innerHTML = `<span class="win">Option A</span> covers ${diff} m² more than Option B!`;
+    } else if (totalB > totalA) {
+      cardB.classList.add('winner');
+      badgeB.style.display = 'inline-block';
+      const diff = (totalB - totalA).toFixed(2);
+      verdict.innerHTML = `<span class="win">Option B</span> covers ${diff} m² more than Option A!`;
+    } else {
+      verdict.innerHTML = `<span class="win">Exact tie!</span> Both options cover the same area`;
+    }
+  }
+
+  // Render sprinkler visualizations
+  renderSprinklers('sa-svg', nA, rA);
+  renderSprinklers('sb-svg', nB, rB);
+}
+
+function renderSprinklers(svgId, n, rM) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+
+  if (n <= 0 || rM <= 0) return;
+
+  // Scale: fit up to 6 sprinklers with some radius
+  // Canvas is 180x140
+  const maxDim = Math.min(180, 140) * 0.9;
+  // Show up to 6 sprinklers in a 3x2 grid or 2x1 grid
+  const cols = Math.min(3, n);
+  const rows = Math.ceil(n / cols);
+
+  // Each sprinkler circle's max pixel size
+  const cellW = 180 / cols;
+  const cellH = 140 / rows;
+  const cellSize = Math.min(cellW, cellH);
+
+  // Scale — all sprinklers on same scale for visual comparison
+  // Use a reference: max radius 10m → 50px
+  const scale = 3;  // 1 m = 3 px (consistent for both panels)
+  const pxR = Math.max(8, Math.min(cellSize / 2 - 4, rM * scale));
+
+  for (let i = 0; i < n; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const cx = (col + 0.5) * cellW;
+    const cy = (row + 0.5) * cellH;
+
+    // Sprinkler coverage circle (teal-ish water color)
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('cx', cx);
+    circle.setAttribute('cy', cy);
+    circle.setAttribute('r', pxR);
+    circle.setAttribute('fill', '#D5E8E2');
+    circle.setAttribute('fill-opacity', '0.6');
+    circle.setAttribute('stroke', '#0E6655');
+    circle.setAttribute('stroke-width', 1.5);
+    svg.appendChild(circle);
+
+    // Sprinkler centre dot
+    const dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', cx);
+    dot.setAttribute('cy', cy);
+    dot.setAttribute('r', 2);
+    dot.setAttribute('fill', '#2C3E50');
+    svg.appendChild(dot);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ════════════════════════════════════════════════════════
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  const pizzaPanel = document.getElementById('pizza-panel');
+  const sprinklerPanel = document.getElementById('sprinkler-panel');
+  if (mode === 'pizza') {
+    pizzaPanel.classList.remove('hidden');
+    sprinklerPanel.classList.remove('active');
+    updatePizza();
+  } else {
+    pizzaPanel.classList.add('hidden');
+    sprinklerPanel.classList.add('active');
+    updateSprinkler();
+  }
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+
+// Pizza input listeners
+['pa-d', 'pa-p', 'pb-d', 'pb-p'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePizza);
+});
+
+// Sprinkler input listeners
+['sa-n', 'sa-r', 'sb-n', 'sb-r'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateSprinkler);
+});
+
+// Presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = btn.dataset.preset;
+    if (preset === 'curriculum') {
+      document.getElementById('pa-d').value = 30;
+      document.getElementById('pa-p').value = 15;
+      document.getElementById('pb-d').value = 40;
+      document.getElementById('pb-p').value = 25;
+      updatePizza();
+    } else if (preset === 'exit') {
+      document.getElementById('pa-d').value = 40;
+      document.getElementById('pa-p').value = 20;
+      document.getElementById('pb-d').value = 40;
+      document.getElementById('pb-p').value = 25;
+      updatePizza();
+    } else if (preset === 'surprise') {
+      document.getElementById('pa-d').value = 20;
+      document.getElementById('pa-p').value = 8;
+      document.getElementById('pb-d').value = 40;
+      document.getElementById('pb-p').value = 20;
+      updatePizza();
+    } else if (preset === 'curriculum-sprinkler') {
+      document.getElementById('sa-n').value = 6;
+      document.getElementById('sa-r').value = 3;
+      document.getElementById('sb-n').value = 2;
+      document.getElementById('sb-r').value = 5;
+      updateSprinkler();
+    } else if (preset === 'intuition') {
+      document.getElementById('sa-n').value = 4;
+      document.getElementById('sa-r').value = 4;
+      document.getElementById('sb-n').value = 1;
+      document.getElementById('sb-r').value = 8;
+      updateSprinkler();
+    } else if (preset === 'equal') {
+      document.getElementById('sa-n').value = 4;
+      document.getElementById('sa-r').value = 4;
+      document.getElementById('sb-n').value = 2;
+      document.getElementById('sb-r').value = 5.66;
+      updateSprinkler();
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+setMode('pizza');
+</script>
+
+</body>
+</html>
